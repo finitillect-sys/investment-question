@@ -246,7 +246,7 @@ function renderTableSection(section) {
     const rowsHtml = data.map((row, idx) => renderRowHtml(section, row, idx, config)).join('');
 
     content.innerHTML = `
-        <h2>Раздел ${section}. ${config.title}</h2>
+        <h2 class="section-main-title">Раздел ${section}. ${config.title}</h2>
         <div class="table-wrapper">
             <table class="editable-table">
                 <thead><tr>${headHtml}<th>Удалить</th></tr></thead>

@@ -331,8 +331,8 @@ body.dark .btn-secondary:hover {
     font-size: 17px;
     font-weight: 700;
     color: var(--text);
-    margin-bottom: 10px;
-    padding-bottom: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
     border-bottom: 1.5px solid var(--border);
 }
 
