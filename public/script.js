@@ -342,9 +342,12 @@ function renderRowHtml(section, row, idx, config) {
         }
 
         if (field.type === 'month') {
-            const inputVal = russianToMonthInput(safeVal);
-            return `<td><input type="month" value="${inputVal}"
-                onchange="updateField('${section}',${idx},'${field.key}',this.value)"></td>`;
+            const inputId = `mp-${section}-${idx}-${field.key}`;
+            return `<td><div class="month-picker-wrap">
+                <input id="${inputId}" readonly placeholder="мес. год" value="${safeVal}"
+                    onclick="openMonthPicker('${inputId}','${field.key}','${section}',${idx})">
+                <div id="picker-${inputId}" class="month-picker-popup" style="display:none"></div>
+            </div></td>`;
         }
 
         if (field.type === 'money') {
@@ -848,7 +851,11 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
 const MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 let _activePickerId = null;
 
-function openMonthPicker(inputId, fieldKey) {
+// inputId      — id of the <input> element
+// fieldKey     — data key to store value under
+// tableSection — section letter (e.g. 'B'), undefined for section A
+// tableIdx     — row index for table sections
+function openMonthPicker(inputId, fieldKey, tableSection, tableIdx) {
     const popup = document.getElementById('picker-' + inputId);
     if (!popup) return;
     if (_activePickerId === inputId && popup.style.display !== 'none') {
@@ -864,10 +871,12 @@ function openMonthPicker(inputId, fieldKey) {
         if (mi !== undefined) selMonth = mi;
         if (!isNaN(yr)) displayYear = yr;
     }
-    popup.dataset.year      = displayYear;
-    popup.dataset.selMonth  = selMonth;
-    popup.dataset.fieldKey  = fieldKey;
-    _renderPickerContent(popup, inputId, fieldKey, displayYear, selMonth);
+    popup.dataset.year         = displayYear;
+    popup.dataset.selMonth     = selMonth;
+    popup.dataset.fieldKey     = fieldKey;
+    popup.dataset.tableSection = tableSection !== undefined ? tableSection : '';
+    popup.dataset.tableIdx     = tableIdx     !== undefined ? tableIdx     : '';
+    _renderPickerContent(popup, inputId, displayYear, selMonth);
     popup.style.display = 'block';
     _activePickerId = inputId;
 }
@@ -880,37 +889,48 @@ function closeMonthPicker() {
     }
 }
 
-function _renderPickerContent(popup, inputId, fieldKey, year, selMonth) {
+function _renderPickerContent(popup, inputId, year, selMonth) {
     const months = MONTHS_SHORT.map((m, i) => `
         <button class="mp-month${i === selMonth ? ' mp-selected' : ''}"
-            onclick="pickMonth('${inputId}','${fieldKey}',${year},${i})">${m}</button>`
+            onclick="pickMonth('${inputId}',${year},${i})">${m}</button>`
     ).join('');
     popup.innerHTML = `
         <div class="mp-header">
-            <button class="mp-nav" onclick="shiftPickerYear('${inputId}','${fieldKey}',-1)">&#8249;</button>
+            <button class="mp-nav" onclick="shiftPickerYear('${inputId}',-1)">&#8249;</button>
             <span class="mp-year">${year}</span>
-            <button class="mp-nav" onclick="shiftPickerYear('${inputId}','${fieldKey}',1)">&#8250;</button>
+            <button class="mp-nav" onclick="shiftPickerYear('${inputId}',1)">&#8250;</button>
         </div>
         <div class="mp-grid">${months}</div>`;
 }
 
-function shiftPickerYear(inputId, fieldKey, delta) {
+function shiftPickerYear(inputId, delta) {
     const popup = document.getElementById('picker-' + inputId);
     if (!popup) return;
     const year     = parseInt(popup.dataset.year) + delta;
     const selMonth = parseInt(popup.dataset.selMonth);
     popup.dataset.year = year;
-    _renderPickerContent(popup, inputId, fieldKey, year, selMonth);
+    _renderPickerContent(popup, inputId, year, selMonth);
 }
 
-function pickMonth(inputId, fieldKey, year, monthIdx) {
+function pickMonth(inputId, year, monthIdx) {
+    const popup = document.getElementById('picker-' + inputId);
     const input = document.getElementById(inputId);
-    if (!input) return;
+    if (!input || !popup) return;
     const value = `${MONTHS_RU[monthIdx]} ${year}`;
     input.value = value;
-    if (!projectData.A) projectData.A = {};
-    projectData.A[fieldKey] = value;
-    saveToStorage();
+    const ts = popup.dataset.tableSection;
+    const ti = popup.dataset.tableIdx;
+    const fk = popup.dataset.fieldKey;
+    if (ts) {
+        if (projectData[ts] && projectData[ts][parseInt(ti)] !== undefined) {
+            projectData[ts][parseInt(ti)][fk] = value;
+            saveToStorage();
+        }
+    } else {
+        if (!projectData.A) projectData.A = {};
+        projectData.A[fk] = value;
+        saveToStorage();
+    }
     closeMonthPicker();
 }
 
