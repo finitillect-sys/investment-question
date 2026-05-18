@@ -183,8 +183,12 @@ function renderSection(section) {
                     <input id="a1" value="${projectData.A.name || ''}" placeholder="Введите название проекта">
                 </div>
                 <div class="form-group full">
-                    <label>Описание (до 100 символов)</label>
-                    <input id="a2" value="${projectData.A.description || ''}" placeholder="Краткое описание проекта">
+                    <label>Описание (до 400 символов)</label>
+                    <textarea id="a2" maxlength="400" rows="4" placeholder="Краткое описание проекта" oninput="updateDescCounter()">${projectData.A.description || ''}</textarea>
+                    <div class="desc-counter-row">
+                        <div class="desc-counter-bar"><div class="desc-counter-fill" id="descFill"></div></div>
+                        <span id="descCount">0 / 400</span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Горизонт планирования (лет)</label>
@@ -217,6 +221,7 @@ function renderSection(section) {
                 <button onclick="saveSectionA()" class="btn-primary">Сохранить</button>
             </div>
         `;
+        updateDescCounter();
     } else if (SECTION_CONFIG[section]) {
         renderTableSection(section);
     } else if (section === 'G') {
@@ -362,6 +367,19 @@ function saveSectionA() {
     };
     saveToStorage();
     showToast('Раздел A сохранён');
+}
+
+function updateDescCounter() {
+    const ta = document.getElementById('a2');
+    const fill = document.getElementById('descFill');
+    const count = document.getElementById('descCount');
+    if (!ta || !fill || !count) return;
+    const len = ta.value.length;
+    const pct = (len / 400) * 100;
+    fill.style.width = pct + '%';
+    fill.style.background = pct < 70 ? 'var(--primary)' : pct < 90 ? '#f59e0b' : '#ef4444';
+    count.textContent = `${len} / 400`;
+    count.style.color = pct >= 90 ? '#ef4444' : 'var(--text-muted)';
 }
 
 function onCurrencyChange(val) {
