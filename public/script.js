@@ -204,7 +204,7 @@ function renderSection(section) {
                 </div>
                 <div class="form-group">
                     <label>Валюта</label>
-                    <select id="a8">
+                    <select id="a8" onchange="onCurrencyChange(this.value)">
                         ${CURRENCIES.map(c => `<option value="${c}" ${(projectData.A.currency || 'RUB') === c ? 'selected' : ''}>${c}</option>`).join('')}
                     </select>
                 </div>
@@ -362,6 +362,12 @@ function saveSectionA() {
     };
     saveToStorage();
     showToast('Раздел A сохранён');
+}
+
+function onCurrencyChange(val) {
+    if (!projectData.A) projectData.A = {};
+    projectData.A.currency = val;
+    saveToStorage();
 }
 
 function checkGSum() {
