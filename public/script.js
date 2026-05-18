@@ -225,11 +225,21 @@ function renderSection(section) {
                 </div>
                 <div class="form-group">
                     <label>Дата начала проекта</label>
-                    <input id="a4" value="${projectData.A.startDate || 'май 2026'}" placeholder="май 2026">
+                    <div class="month-picker-wrap">
+                        <input id="a4" readonly placeholder="май 2026"
+                            value="${projectData.A.startDate || 'май 2026'}"
+                            onclick="openMonthPicker('a4','startDate')">
+                        <div id="picker-a4" class="month-picker-popup" style="display:none"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Первая продажа</label>
-                    <input id="a5" value="${projectData.A.firstSale || 'август 2026'}" placeholder="август 2026">
+                    <div class="month-picker-wrap">
+                        <input id="a5" readonly placeholder="август 2026"
+                            value="${projectData.A.firstSale || 'август 2026'}"
+                            onclick="openMonthPicker('a5','firstSale')">
+                        <div id="picker-a5" class="month-picker-popup" style="display:none"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Валюта</label>
@@ -831,6 +841,81 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     const filename = `${projectData.A?.name || 'project'}_results.xlsx`;
     XLSX.writeFile(wb, filename);
     showToast('Excel файл экспортирован');
+});
+
+// ── Month Picker ───────────────────────────────────────────────────────────────
+
+const MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+let _activePickerId = null;
+
+function openMonthPicker(inputId, fieldKey) {
+    const popup = document.getElementById('picker-' + inputId);
+    if (!popup) return;
+    if (_activePickerId === inputId && popup.style.display !== 'none') {
+        closeMonthPicker(); return;
+    }
+    closeMonthPicker();
+    const input = document.getElementById(inputId);
+    const parts = (input.value || '').trim().toLowerCase().split(/[\.\s]+/);
+    let selMonth = -1, displayYear = new Date().getFullYear();
+    if (parts.length >= 2) {
+        const mi = RUSSIAN_MONTHS_MAP[parts[0]];
+        const yr = parseInt(parts[1]);
+        if (mi !== undefined) selMonth = mi;
+        if (!isNaN(yr)) displayYear = yr;
+    }
+    popup.dataset.year      = displayYear;
+    popup.dataset.selMonth  = selMonth;
+    popup.dataset.fieldKey  = fieldKey;
+    _renderPickerContent(popup, inputId, fieldKey, displayYear, selMonth);
+    popup.style.display = 'block';
+    _activePickerId = inputId;
+}
+
+function closeMonthPicker() {
+    if (_activePickerId) {
+        const p = document.getElementById('picker-' + _activePickerId);
+        if (p) p.style.display = 'none';
+        _activePickerId = null;
+    }
+}
+
+function _renderPickerContent(popup, inputId, fieldKey, year, selMonth) {
+    const months = MONTHS_SHORT.map((m, i) => `
+        <button class="mp-month${i === selMonth ? ' mp-selected' : ''}"
+            onclick="pickMonth('${inputId}','${fieldKey}',${year},${i})">${m}</button>`
+    ).join('');
+    popup.innerHTML = `
+        <div class="mp-header">
+            <button class="mp-nav" onclick="shiftPickerYear('${inputId}','${fieldKey}',-1)">&#8249;</button>
+            <span class="mp-year">${year}</span>
+            <button class="mp-nav" onclick="shiftPickerYear('${inputId}','${fieldKey}',1)">&#8250;</button>
+        </div>
+        <div class="mp-grid">${months}</div>`;
+}
+
+function shiftPickerYear(inputId, fieldKey, delta) {
+    const popup = document.getElementById('picker-' + inputId);
+    if (!popup) return;
+    const year     = parseInt(popup.dataset.year) + delta;
+    const selMonth = parseInt(popup.dataset.selMonth);
+    popup.dataset.year = year;
+    _renderPickerContent(popup, inputId, fieldKey, year, selMonth);
+}
+
+function pickMonth(inputId, fieldKey, year, monthIdx) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const value = `${MONTHS_RU[monthIdx]} ${year}`;
+    input.value = value;
+    if (!projectData.A) projectData.A = {};
+    projectData.A[fieldKey] = value;
+    saveToStorage();
+    closeMonthPicker();
+}
+
+document.addEventListener('click', e => {
+    if (_activePickerId && !e.target.closest('.month-picker-wrap')) closeMonthPicker();
 });
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
