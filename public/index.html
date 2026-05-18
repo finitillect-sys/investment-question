@@ -4,40 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Инвестиционный опросный лист</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📊 Инвестиционный опросный лист</h1>
-            <button id="themeToggle" class="theme-btn">🌙 Тёмная тема</button>
-        </header>
+    <div class="app-layout">
 
-        <div class="nav-sections">
-            <button class="nav-btn" data-section="A">A. Общие данные</button>
-            <button class="nav-btn" data-section="B">B. Средства производства</button>
-            <button class="nav-btn" data-section="E">E. Продукты</button>
-            <button class="nav-btn" data-section="C1">C1. Прямые затраты (на ед.)</button>
-            <button class="nav-btn" data-section="C2">C2. Косвенные затраты</button>
-            <button class="nav-btn" data-section="D">D. АХР</button>
-            <button class="nav-btn" data-section="F">F. Персонал</button>
-            <button class="nav-btn" data-section="G">G. Финансирование</button>
-        </div>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span class="logo-icon">📊</span>
+                    <span class="logo-text">ИнвестМодель</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-group-label">Данные проекта</div>
+                <button class="nav-btn active" data-section="A">
+                    <span class="nav-letter">A</span>
+                    <span>Общие данные</span>
+                </button>
+                <button class="nav-btn" data-section="B">
+                    <span class="nav-letter">B</span>
+                    <span>Средства производства</span>
+                </button>
+                <button class="nav-btn" data-section="E">
+                    <span class="nav-letter">E</span>
+                    <span>Продукты и услуги</span>
+                </button>
+                <div class="nav-group-label">Затраты</div>
+                <button class="nav-btn" data-section="C1">
+                    <span class="nav-letter">C1</span>
+                    <span>Прямые затраты</span>
+                </button>
+                <button class="nav-btn" data-section="C2">
+                    <span class="nav-letter">C2</span>
+                    <span>Косвенные затраты</span>
+                </button>
+                <button class="nav-btn" data-section="D">
+                    <span class="nav-letter">D</span>
+                    <span>АХР</span>
+                </button>
+                <div class="nav-group-label">Финансы</div>
+                <button class="nav-btn" data-section="F">
+                    <span class="nav-letter">F</span>
+                    <span>Персонал</span>
+                </button>
+                <button class="nav-btn" data-section="G">
+                    <span class="nav-letter">G</span>
+                    <span>Финансирование</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="themeToggle" class="theme-btn">🌙 Тёмная тема</button>
+                <button id="resetBtn" class="btn-ghost-danger">🗑️ Сбросить данные</button>
+            </div>
+        </aside>
 
-        <div id="content" class="content">
-            <!-- Сюда динамически загружается форма раздела -->
-        </div>
+        <main class="main-area">
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title" id="pageTitle">Общие данные о проекте</h1>
+                </div>
+                <div class="topbar-right">
+                    <button id="exportCSVBtn" class="btn-secondary">📄 Экспорт CSV</button>
+                    <button id="calculateBtn" class="btn-primary">📈 Рассчитать проект</button>
+                </div>
+            </div>
 
-        <div class="actions">
-            <button id="calculateBtn" class="btn-primary">📈 Рассчитать проект</button>
-            <button id="exportCSVBtn" class="btn-secondary">📄 Экспорт CSV</button>
-            <button id="resetBtn" class="btn-danger">🗑️ Сбросить все данные</button>
-        </div>
+            <div id="content" class="content-card"></div>
 
-        <div id="results" class="results" style="display: none;">
-            <h2>Результаты расчёта</h2>
-            <div id="resultsContent"></div>
-        </div>
+            <div id="results" class="results-section" style="display: none;">
+                <div class="kpi-row" id="kpiRow"></div>
+
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <h3>Финансовый прогноз по годам</h3>
+                        <div class="chart-legend" id="chartLegend"></div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="results-table-card">
+                    <h3>Детальная таблица (тыс. руб.)</h3>
+                    <div class="table-wrapper">
+                        <div id="resultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="/script.js"></script>

@@ -121,31 +121,111 @@ function saveToStorage() {
     localStorage.setItem('investmentProject', JSON.stringify(projectData));
 }
 
+const SECTION_TITLES = {
+    A: 'Общие данные о проекте',
+    B: 'Средства производства',
+    E: 'Продукты и услуги',
+    C1: 'Прямые затраты',
+    C2: 'Косвенные затраты',
+    D: 'Административно-хозяйственные расходы',
+    F: 'Персонал',
+    G: 'Финансирование'
+};
+
+function showToast(msg, type = 'success') {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = `
+            position:fixed; bottom:28px; right:28px; z-index:9999;
+            padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600;
+            box-shadow:0 8px 24px rgba(0,0,0,0.18); transition:opacity 0.3s;
+            font-family:inherit;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+    toast.style.color = 'white';
+    toast.style.opacity = '1';
+    toast.textContent = msg;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
+}
+
+function setActiveNav(section) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const active = document.querySelector(`.nav-btn[data-section="${section}"]`);
+    if (active) active.classList.add('active');
+    const title = document.getElementById('pageTitle');
+    if (title) title.textContent = SECTION_TITLES[section] || section;
+}
+
 function renderSection(section) {
     const content = document.getElementById('content');
+    setActiveNav(section);
 
     if (section === 'A') {
         content.innerHTML = `
-            <h2>Раздел A. Общие данные о проекте</h2>
-            <div class="form-group"><label>Название проекта</label><input id="a1" value="${projectData.A.name || ''}"></div>
-            <div class="form-group"><label>Описание (до 100 символов)</label><input id="a2" value="${projectData.A.description || ''}"></div>
-            <div class="form-group"><label>Горизонт планирования (лет)</label><input id="a3" type="number" value="${projectData.A.horizon || 6}"></div>
-            <div class="form-group"><label>Дата начала проекта (месяц.год)</label><input id="a4" value="${projectData.A.startDate || 'май 2026'}"></div>
-            <div class="form-group"><label>Первая продажа (месяц.год)</label><input id="a5" value="${projectData.A.firstSale || 'август 2026'}"></div>
-            <div class="form-group"><label>Остаток ДС на старте (руб)</label><input id="a6" type="number" value="${projectData.A.cashStart || 0}"></div>
-            <div class="form-group"><label>Регион реализации</label><input id="a7" value="${projectData.A.region || 'Россия'}"></div>
-            <button onclick="saveSectionA()" class="btn-primary">Сохранить раздел A</button>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Название проекта</label>
+                    <input id="a1" value="${projectData.A.name || ''}" placeholder="Введите название проекта">
+                </div>
+                <div class="form-group full">
+                    <label>Описание (до 100 символов)</label>
+                    <input id="a2" value="${projectData.A.description || ''}" placeholder="Краткое описание проекта">
+                </div>
+                <div class="form-group">
+                    <label>Горизонт планирования (лет)</label>
+                    <input id="a3" type="number" value="${projectData.A.horizon || 6}" min="1" max="20">
+                </div>
+                <div class="form-group">
+                    <label>Регион реализации</label>
+                    <input id="a7" value="${projectData.A.region || 'Россия'}">
+                </div>
+                <div class="form-group">
+                    <label>Дата начала проекта</label>
+                    <input id="a4" value="${projectData.A.startDate || 'май 2026'}" placeholder="май 2026">
+                </div>
+                <div class="form-group">
+                    <label>Первая продажа</label>
+                    <input id="a5" value="${projectData.A.firstSale || 'август 2026'}" placeholder="август 2026">
+                </div>
+                <div class="form-group">
+                    <label>Остаток ДС на старте (руб)</label>
+                    <input id="a6" type="number" value="${projectData.A.cashStart || 0}">
+                </div>
+            </div>
+            <div class="save-btn-row">
+                <button onclick="saveSectionA()" class="btn-primary">Сохранить</button>
+            </div>
         `;
     } else if (SECTION_CONFIG[section]) {
         renderTableSection(section);
     } else if (section === 'G') {
         content.innerHTML = `
-            <h2>Раздел G. Финансирование</h2>
-            <div class="form-group"><label>Кредит (%)</label><input id="g1" type="number" value="${projectData.G.creditPercent || 50}"></div>
-            <div class="form-group"><label>Субсидии (%)</label><input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}"></div>
-            <div class="form-group"><label>Собственный капитал (%)</label><input id="g3" type="number" value="${projectData.G.equityPercent || 50}"></div>
-            <div class="form-group"><label>Ставка по кредиту (%)</label><input id="g4" type="number" value="${projectData.G.creditRate || 9}"></div>
-            <button onclick="saveSectionG()" class="btn-primary">Сохранить раздел G</button>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Кредит (%)</label>
+                    <input id="g1" type="number" value="${projectData.G.creditPercent || 50}" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Субсидии (%)</label>
+                    <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Собственный капитал (%)</label>
+                    <input id="g3" type="number" value="${projectData.G.equityPercent || 50}" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Ставка по кредиту (%)</label>
+                    <input id="g4" type="number" value="${projectData.G.creditRate || 9}" min="0">
+                </div>
+            </div>
+            <div class="save-btn-row">
+                <button onclick="saveSectionG()" class="btn-primary">Сохранить</button>
+            </div>
         `;
     }
 }
@@ -246,7 +326,7 @@ function saveSectionA() {
         region: document.getElementById('a7').value
     };
     saveToStorage();
-    alert('Раздел A сохранён');
+    showToast('Раздел A сохранён');
 }
 
 function saveSectionG() {
@@ -257,48 +337,188 @@ function saveSectionG() {
         creditRate: parseFloat(document.getElementById('g4').value)
     };
     saveToStorage();
-    alert('Раздел G сохранён');
+    showToast('Раздел G сохранён');
+}
+
+let mainChartInstance = null;
+
+function fmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
+
+function renderKPI(result) {
+    const npv = parseFloat(result.npv);
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.innerHTML = `
+        <div class="kpi-card">
+            <div class="kpi-label">NPV</div>
+            <div class="kpi-value ${npv >= 0 ? 'positive' : 'negative'}">${fmt(npv)}</div>
+            <div class="kpi-sub">тыс. руб. · ставка 16%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">IRR</div>
+            <div class="kpi-value neutral">${result.irr}%</div>
+            <div class="kpi-sub">внутренняя норма доходности</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">PI</div>
+            <div class="kpi-value ${parseFloat(result.pi) >= 1 ? 'positive' : 'negative'}">${result.pi}</div>
+            <div class="kpi-sub">индекс рентабельности</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Срок окупаемости</div>
+            <div class="kpi-value neutral">${result.paybackPeriod}</div>
+            <div class="kpi-sub">простой срок</div>
+        </div>
+    `;
+}
+
+function renderChart(result) {
+    const isDark = document.body.classList.contains('dark');
+    const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+    const textColor = isDark ? '#8b9ab0' : '#6b7280';
+
+    if (mainChartInstance) mainChartInstance.destroy();
+
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    mainChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: result.years.map(String),
+            datasets: [
+                {
+                    label: 'Выручка',
+                    data: result.revenue.map(Math.round),
+                    backgroundColor: 'rgba(79,70,229,0.75)',
+                    borderRadius: 5,
+                    order: 2
+                },
+                {
+                    label: 'Чистая прибыль',
+                    data: result.netProfit.map(Math.round),
+                    backgroundColor: 'rgba(16,185,129,0.75)',
+                    borderRadius: 5,
+                    order: 2
+                },
+                {
+                    label: 'ДС накопл.',
+                    data: result.cashCumulative.map(Math.round),
+                    type: 'line',
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.12)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#f59e0b',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.35,
+                    order: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('ru-RU')} тыс. руб.`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: textColor, font: { family: 'Inter', size: 12 } }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: {
+                        color: textColor,
+                        font: { family: 'Inter', size: 12 },
+                        callback: v => v.toLocaleString('ru-RU')
+                    }
+                }
+            }
+        }
+    });
+
+    document.getElementById('chartLegend').innerHTML = [
+        { color: 'rgba(79,70,229,0.75)', label: 'Выручка' },
+        { color: 'rgba(16,185,129,0.75)', label: 'Чистая прибыль' },
+        { color: '#f59e0b', label: 'ДС накопл.' }
+    ].map(l => `
+        <div class="legend-item">
+            <span class="legend-dot" style="background:${l.color}"></span>
+            <span>${l.label}</span>
+        </div>
+    `).join('');
+}
+
+function renderResultsTable(result) {
+    const resultsContent = document.getElementById('resultsContent');
+    resultsContent.innerHTML = `
+        <table>
+            <thead><tr>
+                <th>Год</th>
+                <th>Выручка</th>
+                <th>Кол-во</th>
+                <th>Прямые</th>
+                <th>Косвенные</th>
+                <th>АХР</th>
+                <th>ФОТ</th>
+                <th>EBITDA</th>
+                <th>Чистая прибыль</th>
+                <th>ДС накопл.</th>
+            </tr></thead>
+            <tbody>
+            ${result.years.map((year, i) => {
+                const profit = Math.round(result.netProfit[i]);
+                const cash = Math.round(result.cashCumulative[i]);
+                return `<tr>
+                    <td>${year}</td>
+                    <td>${fmt(result.revenue[i])}</td>
+                    <td>${fmt(result.quantity[i])}</td>
+                    <td>${fmt(result.directCosts[i])}</td>
+                    <td>${fmt(result.indirectCosts[i])}</td>
+                    <td>${fmt(result.adminCosts[i])}</td>
+                    <td>${fmt(result.payroll[i])}</td>
+                    <td>${fmt(result.ebitda[i])}</td>
+                    <td class="${profit >= 0 ? 'positive' : 'negative'}">${fmt(profit)}</td>
+                    <td class="${cash >= 0 ? 'positive' : 'negative'}">${fmt(cash)}</td>
+                </tr>`;
+            }).join('')}
+            </tbody>
+        </table>
+    `;
 }
 
 document.getElementById('calculateBtn')?.addEventListener('click', async () => {
-    const response = await fetch('/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectData)
-    });
-    const result = await response.json();
+    const btn = document.getElementById('calculateBtn');
+    btn.textContent = '⏳ Расчёт...';
+    btn.disabled = true;
+    try {
+        const response = await fetch('/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projectData)
+        });
+        const result = await response.json();
 
-    const resultsDiv = document.getElementById('results');
-    const resultsContent = document.getElementById('resultsContent');
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'flex';
+        resultsDiv.style.flexDirection = 'column';
 
-    resultsContent.innerHTML = `
-        <h3>Итоги по годам (тыс. руб.)</h3>
-        <table><thead><tr>
-            <th>Год</th><th>Выручка</th><th>Кол-во</th><th>Прямые затраты</th><th>Косвенные</th><th>АХР</th><th>ФОТ</th><th>Чистая прибыль</th><th>ДС накопл.</th>
-        </tr></thead><tbody>
-        ${result.years.map((year, i) => `
-            <tr>
-                <td>${year}</td>
-                <td>${Math.round(result.revenue[i])}</td>
-                <td>${Math.round(result.quantity[i])}</td>
-                <td>${Math.round(result.directCosts[i])}</td>
-                <td>${Math.round(result.indirectCosts[i])}</td>
-                <td>${Math.round(result.adminCosts[i])}</td>
-                <td>${Math.round(result.payroll[i])}</td>
-                <td>${Math.round(result.netProfit[i])}</td>
-                <td>${Math.round(result.cashCumulative[i])}</td>
-            </tr>
-        `).join('')}
-        </tbody></table>
+        renderKPI(result);
+        renderChart(result);
+        renderResultsTable(result);
 
-        <h3>Инвестиционные показатели (ставка 16%)</h3>
-        <p>NPV: ${result.npv} тыс. руб.</p>
-        <p>IRR: ${result.irr}%</p>
-        <p>PI: ${result.pi}</p>
-        <p>Срок окупаемости: ${result.paybackPeriod}</p>
-    `;
-
-    resultsDiv.style.display = 'block';
+        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('Расчёт выполнен успешно');
+    } catch (e) {
+        showToast('Ошибка при расчёте', 'error');
+    } finally {
+        btn.textContent = '📈 Рассчитать проект';
+        btn.disabled = false;
+    }
 });
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -310,22 +530,22 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 document.getElementById('themeToggle')?.addEventListener('click', () => {
     document.body.classList.toggle('dark');
+    if (mainChartInstance) {
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('themeToggle').textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        mainChartInstance.destroy();
+        mainChartInstance = null;
+    }
 });
 
 document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
-    const resultsContent = document.getElementById('resultsContent');
-    const table = resultsContent?.querySelector('table');
-    if (!table) {
-        alert('Сначала выполните расчёт проекта');
-        return;
-    }
-
+    const table = document.querySelector('#resultsContent table');
+    if (!table) { showToast('Сначала выполните расчёт', 'error'); return; }
     let csv = '';
     table.querySelectorAll('tr').forEach(row => {
         const cells = Array.from(row.querySelectorAll('th, td')).map(cell => `"${cell.textContent.trim()}"`);
         csv += cells.join(';') + '\n';
     });
-
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -333,10 +553,11 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     link.download = `${projectData.A?.name || 'project'}_results.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    showToast('CSV файл экспортирован');
 });
 
 document.getElementById('resetBtn')?.addEventListener('click', () => {
-    if (confirm('Удалить все данные?')) {
+    if (confirm('Удалить все данные проекта?')) {
         localStorage.removeItem('investmentProject');
         location.reload();
     }
