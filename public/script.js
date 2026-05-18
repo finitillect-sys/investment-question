@@ -42,7 +42,7 @@ function monthInputToRussian(val) {
 const SECTION_CONFIG = {
     B: {
         title: 'Средства производства',
-        columns: ['Название', 'Сумма (руб)', 'Дата покупки'],
+        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата покупки'],
         fields: [
             { key: 'name',   type: 'text',   placeholder: 'Станок ЧПУ' },
             { key: 'amount', type: 'number', placeholder: '300000' },
@@ -52,7 +52,7 @@ const SECTION_CONFIG = {
     },
     E: {
         title: 'Продукты и услуги',
-        columns: ['Продукт', 'Цена (руб)', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
+        columns: cur => ['Продукт', cur ? `Цена (${cur})` : 'Цена', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
         fields: [
             { key: 'product',   type: 'text',   placeholder: 'Электросамокат' },
             { key: 'price',     type: 'number', placeholder: '25000' },
@@ -64,7 +64,7 @@ const SECTION_CONFIG = {
     },
     C1: {
         title: 'Прямые затраты на единицу продукции',
-        columns: ['Продукт', 'Статья затрат', 'Сумма на ед. (руб)', 'Рост %'],
+        columns: cur => ['Продукт', 'Статья затрат', cur ? `Сумма на ед. (${cur})` : 'Сумма на ед.', 'Рост %'],
         fields: [
             { key: 'product',      type: 'product-select' },
             { key: 'costItem',     type: 'text',   placeholder: 'Материалы' },
@@ -75,7 +75,7 @@ const SECTION_CONFIG = {
     },
     C2: {
         title: 'Косвенные производственные затраты',
-        columns: ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
+        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
         fields: [
             { key: 'name',        type: 'text',   placeholder: 'Аренда' },
             { key: 'amount',      type: 'number', placeholder: '50000' },
@@ -87,7 +87,7 @@ const SECTION_CONFIG = {
     },
     D: {
         title: 'Административно-хозяйственные затраты',
-        columns: ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
+        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
         fields: [
             { key: 'name',        type: 'text',   placeholder: 'Реклама' },
             { key: 'amount',      type: 'number', placeholder: '30000' },
@@ -99,7 +99,7 @@ const SECTION_CONFIG = {
     },
     F: {
         title: 'Персонал',
-        columns: ['Должность', 'Оклад (руб)', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
+        columns: cur => ['Должность', cur ? `Оклад (${cur})` : 'Оклад', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
         fields: [
             { key: 'position', type: 'text',   placeholder: 'Токарь' },
             { key: 'salary',   type: 'number', placeholder: '80000' },
@@ -118,6 +118,18 @@ function loadFromStorage() {
 
 function saveToStorage() {
     localStorage.setItem('investmentProject', JSON.stringify(projectData));
+}
+
+const CURRENCIES = ['RUB', 'USD', 'EUR', 'GBP', 'JPY', 'ВЫКЛ.'];
+
+function currencyLabel() {
+    const c = projectData.A?.currency || 'RUB';
+    return c === 'ВЫКЛ.' ? '' : c;
+}
+
+function thouLabel() {
+    const cur = currencyLabel();
+    return cur ? `тыс. ${cur}` : 'тыс.';
 }
 
 const SECTION_TITLES = {
@@ -191,7 +203,13 @@ function renderSection(section) {
                     <input id="a5" value="${projectData.A.firstSale || 'август 2026'}" placeholder="август 2026">
                 </div>
                 <div class="form-group">
-                    <label>Остаток ДС на старте (руб)</label>
+                    <label>Валюта</label>
+                    <select id="a8">
+                        ${CURRENCIES.map(c => `<option value="${c}" ${(projectData.A.currency || 'RUB') === c ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Остаток ДС на старте</label>
                     <input id="a6" type="number" value="${projectData.A.cashStart || 0}">
                 </div>
             </div>
@@ -242,7 +260,8 @@ function renderTableSection(section) {
     const data   = projectData[section] || [];
     const content = document.getElementById('content');
 
-    const headHtml = config.columns.map(c => `<th>${c}</th>`).join('');
+    const cols = typeof config.columns === 'function' ? config.columns(currencyLabel()) : config.columns;
+    const headHtml = cols.map(c => `<th>${c}</th>`).join('');
     const rowsHtml = data.map((row, idx) => renderRowHtml(section, row, idx, config)).join('');
 
     content.innerHTML = `
@@ -338,7 +357,8 @@ function saveSectionA() {
         startDate:   document.getElementById('a4').value,
         firstSale:   document.getElementById('a5').value,
         cashStart:   parseFloat(document.getElementById('a6').value),
-        region:      document.getElementById('a7').value
+        region:      document.getElementById('a7').value,
+        currency:    document.getElementById('a8').value
     };
     saveToStorage();
     showToast('Раздел A сохранён');
@@ -379,7 +399,7 @@ function renderKPI(result) {
         <div class="kpi-card">
             <div class="kpi-label">NPV</div>
             <div class="kpi-value ${npv >= 0 ? 'positive' : 'negative'}">${fmt(npv)}</div>
-            <div class="kpi-sub">тыс. руб. · ставка 16%</div>
+            <div class="kpi-sub">${thouLabel()} · ставка 16%</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-label">IRR</div>
@@ -399,7 +419,7 @@ function renderKPI(result) {
         <div class="kpi-card">
             <div class="kpi-label">Потребность в финансировании</div>
             <div class="kpi-value ${loan > 0 ? 'negative' : 'positive'}">${fmt(loan)}</div>
-            <div class="kpi-sub">тыс. руб. · расчётный кредит</div>
+            <div class="kpi-sub">${thouLabel()} · расчётный кредит</div>
         </div>
     `;
 }
@@ -470,7 +490,7 @@ function renderChart(result) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('ru-RU')} тыс. руб.`
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('ru-RU')} ${thouLabel()}`
                     }
                 }
             },
@@ -607,6 +627,8 @@ document.getElementById('calculateBtn')?.addEventListener('click', async () => {
 
         window._lastResult = result;
         tableTransposed = false;
+        const curDisp = document.getElementById('curLabelDisplay');
+        if (curDisp) curDisp.textContent = thouLabel();
         renderKPI(result);
         renderChart(result);
         renderResultsTable(result, false);
@@ -722,7 +744,7 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
         ['Субсидии (%)',          projectData.G?.subsidyPercent || ''],
         ['Собственный капитал (%)', projectData.G?.equityPercent || ''],
         ['Ставка по кредиту (%)', projectData.G?.creditRate     || ''],
-        ['Расчётный займ (тыс. руб.)', result.requiredLoan      || 0]
+        [`Расчётный займ (${thouLabel()})`, result.requiredLoan || 0]
     ], [{ wch: 30 }, { wch: 16 }]);
 
     // ── Прогноз: статьи в строках, годы в столбцах ───────────────
@@ -732,17 +754,17 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
         const vals = (result[meta.key] || []).map(v => Math.round(v));
         return [meta.label, ...vals];
     });
-    addSheet('Прогноз (тыс. руб.)', [forecastHeader, ...forecastRows],
+    addSheet(`Прогноз (${thouLabel()})`, [forecastHeader, ...forecastRows],
         [{ wch: 30 }, ...forecastYearCols]);
 
     // ── Показатели ────────────────────────────────────────────────
     addSheet('Показатели', [
         ['Показатель', 'Значение', 'Единица'],
-        ['NPV',                       result.npv,          'тыс. руб.'],
+        ['NPV',                       result.npv,          thouLabel()],
         ['IRR',                       result.irr,          '%'],
         ['PI (индекс рентабельности)', result.pi,          ''],
         ['Срок окупаемости',           result.paybackPeriod, ''],
-        ['Потребность в финансировании', result.requiredLoan, 'тыс. руб.'],
+        ['Потребность в финансировании', result.requiredLoan, thouLabel()],
         ['Ставка дисконтирования',     '16',               '%'],
         ['Страховые взносы',           '30',               '% от ФОТ']
     ], [{ wch: 32 }, { wch: 16 }, { wch: 16 }]);
