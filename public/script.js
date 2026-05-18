@@ -878,6 +878,10 @@ function openMonthPicker(inputId, fieldKey, tableSection, tableIdx) {
     popup.dataset.tableIdx     = tableIdx     !== undefined ? tableIdx     : '';
     _renderPickerContent(popup, inputId, displayYear, selMonth);
     popup.style.display = 'block';
+    // Position below the input using fixed viewport coordinates
+    const rect = input.getBoundingClientRect();
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
     _activePickerId = inputId;
 }
 

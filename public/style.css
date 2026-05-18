@@ -804,10 +804,8 @@ body.dark .results-table-card tr.row-ebitda td {
 }
 
 .month-picker-popup {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    z-index: 300;
+    position: fixed;
+    z-index: 9999;
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: 14px;
