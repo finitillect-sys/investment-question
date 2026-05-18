@@ -405,11 +405,21 @@ textarea,
 .form-group select {
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 38px 10px 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
-    padding-right: 32px;
     cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-group select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
 }
 
 input:focus, textarea:focus,
@@ -525,6 +535,21 @@ body.dark .editable-table td { border-bottom-color: #252c42; }
     transition: border-color 0.15s, background 0.15s;
 }
 
+.editable-table td select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding: 7px 28px 7px 9px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
 .editable-table td select.product-select { min-width: 180px; }
 
 .editable-table td input:focus,
@@ -535,13 +560,15 @@ body.dark .editable-table td { border-bottom-color: #252c42; }
     box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
 }
 
-.editable-table td input:hover,
-.editable-table td select:hover {
+.editable-table td input:hover {
     border-color: var(--border);
     background: var(--card);
 }
 
-.editable-table td select { cursor: pointer; }
+.editable-table td select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.11);
+}
 
 .editable-table td .month-picker-wrap {
     width: 100%;
@@ -783,6 +810,17 @@ body.dark select {
 body.dark .editable-table td input,
 body.dark .editable-table td select {
     color: var(--text);
+}
+
+body.dark .form-group select,
+body.dark .editable-table td select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+}
+
+body.dark .editable-table td select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    box-shadow: 0 2px 10px rgba(0,0,0,0.18);
 }
 
 body.dark .results-table-card tr.row-ebitda td {
