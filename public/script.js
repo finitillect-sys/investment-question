@@ -507,6 +507,7 @@ document.getElementById('calculateBtn')?.addEventListener('click', async () => {
         resultsDiv.style.display = 'flex';
         resultsDiv.style.flexDirection = 'column';
 
+        window._lastResult = result;
         renderKPI(result);
         renderChart(result);
         renderResultsTable(result);
@@ -539,21 +540,62 @@ document.getElementById('themeToggle')?.addEventListener('click', () => {
 });
 
 document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
-    const table = document.querySelector('#resultsContent table');
-    if (!table) { showToast('Сначала выполните расчёт', 'error'); return; }
-    let csv = '';
-    table.querySelectorAll('tr').forEach(row => {
-        const cells = Array.from(row.querySelectorAll('th, td')).map(cell => `"${cell.textContent.trim()}"`);
-        csv += cells.join(';') + '\n';
-    });
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${projectData.A?.name || 'project'}_results.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast('CSV файл экспортирован');
+    if (!window._lastResult) { showToast('Сначала выполните расчёт', 'error'); return; }
+    const result = window._lastResult;
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1 — Financial forecast
+    const headers = ['Год', 'Выручка', 'Кол-во', 'Прямые затраты', 'Косвенные', 'АХР', 'ФОТ', 'EBITDA', 'Чистая прибыль', 'ДС накопл.'];
+    const rows = result.years.map((year, i) => [
+        year,
+        Math.round(result.revenue[i]),
+        Math.round(result.quantity[i]),
+        Math.round(result.directCosts[i]),
+        Math.round(result.indirectCosts[i]),
+        Math.round(result.adminCosts[i]),
+        Math.round(result.payroll[i]),
+        Math.round(result.ebitda[i]),
+        Math.round(result.netProfit[i]),
+        Math.round(result.cashCumulative[i])
+    ]);
+    const ws1 = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    ws1['!cols'] = headers.map((_, i) => ({ wch: i === 0 ? 8 : 18 }));
+    XLSX.utils.book_append_sheet(wb, ws1, 'Прогноз (тыс. руб.)');
+
+    // Sheet 2 — Investment indicators
+    const kpiData = [
+        ['Показатель', 'Значение', 'Единица'],
+        ['NPV', result.npv, 'тыс. руб.'],
+        ['IRR', result.irr, '%'],
+        ['PI (индекс рентабельности)', result.pi, ''],
+        ['Срок окупаемости', result.paybackPeriod, ''],
+        ['Ставка дисконтирования', '16', '%']
+    ];
+    const ws2 = XLSX.utils.aoa_to_sheet(kpiData);
+    ws2['!cols'] = [{ wch: 30 }, { wch: 16 }, { wch: 14 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Показатели');
+
+    // Sheet 3 — Products
+    if (projectData.E?.length) {
+        const prodHeaders = ['Продукт', 'Цена (руб)', 'Кол-во/мес', 'Дата старта', 'Рост % в год'];
+        const prodRows = projectData.E.map(p => [p.product, p.price, p.quantity, p.startDate, p.growth]);
+        const ws3 = XLSX.utils.aoa_to_sheet([prodHeaders, ...prodRows]);
+        ws3['!cols'] = [{ wch: 24 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }];
+        XLSX.utils.book_append_sheet(wb, ws3, 'Продукты');
+    }
+
+    // Sheet 4 — Personnel
+    if (projectData.F?.length) {
+        const persHeaders = ['Должность', 'Оклад (руб)', 'Кол-во', 'Дата найма', 'Рост ФОТ %'];
+        const persRows = projectData.F.map(p => [p.position, p.salary, p.count, p.hireDate, p.growth]);
+        const ws4 = XLSX.utils.aoa_to_sheet([persHeaders, ...persRows]);
+        ws4['!cols'] = [{ wch: 24 }, { wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 14 }];
+        XLSX.utils.book_append_sheet(wb, ws4, 'Персонал');
+    }
+
+    const filename = `${projectData.A?.name || 'project'}_results.xlsx`;
+    XLSX.writeFile(wb, filename);
+    showToast('Excel файл экспортирован');
 });
 
 document.getElementById('resetBtn')?.addEventListener('click', () => {
