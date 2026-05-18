@@ -584,8 +584,7 @@ document.getElementById('calculateBtn')?.addEventListener('click', async () => {
         const result = await response.json();
 
         const resultsDiv = document.getElementById('results');
-        resultsDiv.style.display = 'flex';
-        resultsDiv.style.flexDirection = 'column';
+        resultsDiv.style.display = '';
 
         window._lastResult = result;
         tableTransposed = false;

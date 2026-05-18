@@ -219,6 +219,9 @@ body.dark .theme-btn:hover { color: #a5b4fc; }
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-width: 0;
+    overflow-x: hidden;
+    width: calc(100% - var(--sidebar-w));
 }
 
 /* ── TOPBAR ── */
@@ -310,6 +313,8 @@ body.dark .btn-secondary:hover {
     padding: 28px 32px;
     border: 1.5px solid var(--border);
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    max-width: calc(100% - 56px);
 }
 
 /* ── SECTION HEADINGS ── */
@@ -505,12 +510,14 @@ body.dark .add-row-btn { color: #a5b4fc; }
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0;
+    max-width: calc(100% - 56px);
 }
 
 /* KPI Cards */
 .kpi-row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
 }
 
@@ -553,6 +560,8 @@ body.dark .add-row-btn { color: #a5b4fc; }
     border-radius: 14px;
     padding: 24px 28px;
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .chart-card-header {
@@ -599,6 +608,8 @@ body.dark .add-row-btn { color: #a5b4fc; }
     border-radius: 14px;
     padding: 24px 28px;
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .results-table-card h3 {
