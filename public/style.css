@@ -19,21 +19,21 @@
 }
 
 body.dark {
-    --bg: #0f1117;
-    --card: #1c1f2e;
+    --bg: #0d1017;
+    --card: #161b27;
     --text: #e8eaf0;
-    --text-muted: #8b9ab0;
-    --border: #2d3348;
+    --text-muted: #7e8ea8;
+    --border: #2e3650;
     --primary: #6366f1;
     --primary-hover: #818cf8;
-    --primary-light: #1e2040;
+    --primary-light: #1a1f3a;
     --primary-rgb: 99, 102, 241;
     --danger: #f87171;
     --danger-light: #2d1a1a;
     --success: #34d399;
     --warning: #fbbf24;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -57,7 +57,7 @@ body {
 .sidebar {
     width: var(--sidebar-w);
     background: var(--card);
-    border-right: 1px solid var(--border);
+    border-right: 2px solid var(--border);
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -69,7 +69,7 @@ body {
 
 .sidebar-header {
     padding: 20px 16px 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
 }
 
 .sidebar-logo {
@@ -78,9 +78,7 @@ body {
     gap: 10px;
 }
 
-.logo-icon {
-    font-size: 22px;
-}
+.logo-icon { font-size: 22px; }
 
 .logo-text {
     font-size: 15px;
@@ -127,14 +125,18 @@ body {
 
 .nav-btn:hover {
     background: var(--primary-light);
-    color: var(--primary);
+    color: var(--text);
 }
+
+body.dark .nav-btn:hover { color: #c7d2fe; }
 
 .nav-btn.active {
     background: var(--primary-light);
     color: var(--primary);
     font-weight: 600;
 }
+
+body.dark .nav-btn.active { color: #a5b4fc; }
 
 .nav-letter {
     width: 24px;
@@ -159,7 +161,7 @@ body {
 
 .sidebar-footer {
     padding: 12px 10px 16px;
-    border-top: 1px solid var(--border);
+    border-top: 2px solid var(--border);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -169,7 +171,7 @@ body {
     width: 100%;
     padding: 9px 12px;
     background: var(--bg);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 8px;
     cursor: pointer;
     color: var(--text);
@@ -180,13 +182,20 @@ body {
     font-family: inherit;
 }
 
-.theme-btn:hover { border-color: var(--primary); color: var(--primary); }
+.theme-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+body.dark .theme-btn { color: var(--text); }
+body.dark .theme-btn:hover { color: #a5b4fc; }
 
 .btn-ghost-danger {
     width: 100%;
     padding: 9px 12px;
     background: transparent;
-    border: 1px solid transparent;
+    border: 1.5px solid transparent;
     border-radius: 8px;
     cursor: pointer;
     color: var(--text-muted);
@@ -197,7 +206,11 @@ body {
     font-family: inherit;
 }
 
-.btn-ghost-danger:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+.btn-ghost-danger:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+    border-color: var(--danger);
+}
 
 /* ── MAIN AREA ── */
 .main-area {
@@ -212,7 +225,7 @@ body {
 .topbar {
     height: var(--topbar-h);
     background: var(--card);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -240,7 +253,7 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; }
 
 .btn-primary {
     background: var(--primary);
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 8px;
     padding: 9px 18px;
@@ -258,14 +271,36 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; }
 .btn-secondary {
     background: var(--card);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 8px;
     padding: 9px 16px;
     font-size: 13px;
     font-weight: 500;
 }
 
-.btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+.btn-secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+body.dark .btn-secondary {
+    background: #1e2540;
+    color: #c7d2fe;
+    border-color: #3a4570;
+}
+
+body.dark .btn-secondary:hover {
+    border-color: var(--primary);
+    color: #a5b4fc;
+    background: var(--primary-light);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 7px;
+}
 
 /* ── CONTENT CARD ── */
 .content-card {
@@ -273,7 +308,7 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; }
     background: var(--card);
     border-radius: 16px;
     padding: 28px 32px;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     box-shadow: var(--shadow-sm);
 }
 
@@ -283,7 +318,7 @@ button { font-family: inherit; cursor: pointer; transition: all 0.15s; }
     font-weight: 700;
     margin-bottom: 24px;
     padding-bottom: 14px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
     color: var(--text);
 }
 
@@ -335,7 +370,7 @@ input:focus, textarea:focus {
 .save-btn-row {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid var(--border);
+    border-top: 1.5px solid var(--border);
     display: flex;
     justify-content: flex-end;
 }
@@ -351,7 +386,7 @@ input:focus, textarea:focus {
 .table-wrapper {
     overflow-x: auto;
     border-radius: 10px;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     margin-bottom: 14px;
 }
 
@@ -373,7 +408,7 @@ input:focus, textarea:focus {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
     white-space: nowrap;
     background: var(--bg);
 }
@@ -383,6 +418,8 @@ input:focus, textarea:focus {
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
+
+body.dark .editable-table td { border-bottom-color: #252c42; }
 
 .editable-table tbody tr:last-child td { border-bottom: none; }
 
@@ -401,6 +438,8 @@ input:focus, textarea:focus {
     font-family: inherit;
     transition: border-color 0.15s, background 0.15s;
 }
+
+.editable-table td select.product-select { min-width: 180px; }
 
 .editable-table td input:focus,
 .editable-table td select:focus {
@@ -452,6 +491,8 @@ input:focus, textarea:focus {
     transition: all 0.15s;
 }
 
+body.dark .add-row-btn { color: #a5b4fc; }
+
 .add-row-btn:hover {
     background: var(--primary);
     color: white;
@@ -469,15 +510,15 @@ input:focus, textarea:focus {
 /* KPI Cards */
 .kpi-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
 }
 
 .kpi-card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 14px;
-    padding: 20px 22px;
+    padding: 18px 20px;
     box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
@@ -493,7 +534,7 @@ input:focus, textarea:focus {
 }
 
 .kpi-value {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.5px;
     line-height: 1;
@@ -501,17 +542,14 @@ input:focus, textarea:focus {
 
 .kpi-value.positive { color: var(--success); }
 .kpi-value.negative { color: var(--danger); }
-.kpi-value.neutral { color: var(--primary); }
+.kpi-value.neutral  { color: var(--primary); }
 
-.kpi-sub {
-    font-size: 11px;
-    color: var(--text-muted);
-}
+.kpi-sub { font-size: 11px; color: var(--text-muted); }
 
 /* Chart card */
 .chart-card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 14px;
     padding: 24px 28px;
     box-shadow: var(--shadow-sm);
@@ -557,7 +595,7 @@ input:focus, textarea:focus {
 /* Results table card */
 .results-table-card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: 14px;
     padding: 24px 28px;
     box-shadow: var(--shadow-sm);
@@ -572,8 +610,14 @@ input:focus, textarea:focus {
 .results-table-card .table-wrapper {
     border-radius: 10px;
     overflow-x: auto;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     margin-bottom: 0;
+}
+
+.table-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
 }
 
 .results-table-card table {
@@ -590,7 +634,7 @@ input:focus, textarea:focus {
     letter-spacing: 0.5px;
     color: var(--text-muted);
     background: var(--bg);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
     white-space: nowrap;
     text-align: right;
 }
@@ -598,21 +642,35 @@ input:focus, textarea:focus {
 .results-table-card th:first-child { text-align: left; }
 
 .results-table-card td {
-    padding: 10px 14px;
+    padding: 9px 14px;
     border-bottom: 1px solid var(--border);
     text-align: right;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
 }
 
+body.dark .results-table-card td { border-bottom-color: #252c42; }
+
+.results-table-card td.row-label,
 .results-table-card td:first-child { text-align: left; font-weight: 600; }
 
 .results-table-card tbody tr:last-child td { border-bottom: none; }
-
 .results-table-card tbody tr:hover { background: var(--primary-light); }
 
 .results-table-card td.positive { color: var(--success); font-weight: 600; }
-.results-table-card td.negative { color: var(--danger); font-weight: 600; }
+.results-table-card td.negative { color: var(--danger);  font-weight: 600; }
+
+/* Row accent rows */
+.results-table-card tr.row-ebitda td {
+    background: rgba(var(--primary-rgb), 0.05);
+    border-top: 1.5px solid var(--border);
+    font-weight: 600;
+}
+
+.results-table-card tr.row-profit td {
+    border-top: 1.5px solid var(--border);
+    font-weight: 700;
+}
 
 /* Dark mode overrides for inputs */
 body.dark input,
@@ -624,4 +682,8 @@ body.dark select {
 body.dark .editable-table td input,
 body.dark .editable-table td select {
     color: var(--text);
+}
+
+body.dark .results-table-card tr.row-ebitda td {
+    background: rgba(99, 102, 241, 0.08);
 }
