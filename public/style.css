@@ -794,7 +794,7 @@ body.dark .results-table-card tr.row-ebitda td {
     position: relative;
 }
 
-.month-picker-wrap input {
+.form-group .month-picker-wrap input {
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Crect x='3' y='4' width='18' height='18' rx='3' stroke='%236b7280' stroke-width='1.8'/%3E%3Cpath d='M3 9h18' stroke='%236b7280' stroke-width='1.8'/%3E%3Cpath d='M8 2v4M16 2v4' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -857,6 +857,10 @@ body.dark .results-table-card tr.row-ebitda td {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 4px;
+}
+
+.month-picker-popup button {
+    cursor: pointer;
 }
 
 .mp-month {
