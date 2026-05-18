@@ -344,6 +344,24 @@ body.dark .btn-secondary:hover {
     max-width: 680px;
 }
 
+.section-warning {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    color: #92400e;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+body.dark .section-warning {
+    background: #2d2008;
+    border-color: #d97706;
+    color: #fcd34d;
+}
+
 /* ── FORM FIELDS ── */
 .form-grid {
     display: grid;

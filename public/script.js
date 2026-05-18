@@ -223,10 +223,17 @@ function renderSection(section) {
                     <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100">
                 </div>
             </div>
+            <div id="g-warning" class="section-warning" style="display:none;">
+                ⚠️ Внимание. Общая сумма всех источников финансирования должна составлять 100%
+            </div>
             <div class="save-btn-row">
                 <button onclick="saveSectionG()" class="btn-primary">Сохранить</button>
             </div>
         `;
+        ['g1','g2','g3'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', checkGSum);
+        });
+        checkGSum();
     }
 }
 
@@ -335,6 +342,16 @@ function saveSectionA() {
     };
     saveToStorage();
     showToast('Раздел A сохранён');
+}
+
+function checkGSum() {
+    const credit = parseFloat(document.getElementById('g1')?.value) || 0;
+    const subsidy = parseFloat(document.getElementById('g2')?.value) || 0;
+    const equity = parseFloat(document.getElementById('g3')?.value) || 0;
+    const warning = document.getElementById('g-warning');
+    if (!warning) return;
+    const sum = credit + subsidy + equity;
+    warning.style.display = Math.abs(sum - 100) > 0.01 ? 'block' : 'none';
 }
 
 function saveSectionG() {
