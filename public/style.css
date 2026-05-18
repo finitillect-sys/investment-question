@@ -197,8 +197,13 @@ th {
     background: var(--bg);
 }
 
-.editable-table td select {
+.editable-table td select,
+.editable-table td input[type="month"] {
     cursor: pointer;
+}
+
+.editable-table td input[type="month"] {
+    min-width: 140px;
 }
 
 .editable-table td {

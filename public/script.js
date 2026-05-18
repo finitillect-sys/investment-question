@@ -11,6 +11,33 @@ let projectData = {
 
 let currentSection = 'A';
 
+const MONTHS_RU = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+
+const RUSSIAN_MONTHS_MAP = {
+    'январь':0,'января':0,'февраль':1,'февраля':1,'март':2,'марта':2,
+    'апрель':3,'апреля':3,'май':4,'мая':4,'июнь':5,'июня':5,
+    'июль':6,'июля':6,'август':7,'августа':7,'сентябрь':8,'сентября':8,
+    'октябрь':9,'октября':9,'ноябрь':10,'ноября':10,'декабрь':11,'декабря':11
+};
+
+function russianToMonthInput(str) {
+    if (!str) return '';
+    const parts = str.trim().toLowerCase().split(/[\.\s]+/);
+    if (parts.length < 2) return '';
+    const month = RUSSIAN_MONTHS_MAP[parts[0]];
+    const year = parseInt(parts[1]);
+    if (month === undefined || isNaN(year)) return '';
+    return `${year}-${String(month + 1).padStart(2, '0')}`;
+}
+
+function monthInputToRussian(val) {
+    if (!val) return '';
+    const [year, month] = val.split('-');
+    const idx = parseInt(month) - 1;
+    if (isNaN(idx) || !MONTHS_RU[idx]) return '';
+    return `${MONTHS_RU[idx]}.${year}`;
+}
+
 const SECTION_CONFIG = {
     B: {
         title: 'Средства производства',
@@ -18,7 +45,7 @@ const SECTION_CONFIG = {
         fields: [
             { key: 'name', type: 'text', placeholder: 'Станок ЧПУ' },
             { key: 'amount', type: 'number', placeholder: '300000' },
-            { key: 'date', type: 'text', placeholder: 'июнь.2026' }
+            { key: 'date', type: 'month' }
         ],
         emptyRow: () => ({ name: '', amount: '', date: '' })
     },
@@ -29,7 +56,7 @@ const SECTION_CONFIG = {
             { key: 'product', type: 'text', placeholder: 'Электросамокат' },
             { key: 'price', type: 'number', placeholder: '25000' },
             { key: 'quantity', type: 'number', placeholder: '100' },
-            { key: 'startDate', type: 'text', placeholder: 'август.2026' },
+            { key: 'startDate', type: 'month' },
             { key: 'growth', type: 'number', placeholder: '24' }
         ],
         emptyRow: () => ({ product: '', price: '', quantity: '', startDate: '', growth: '' })
@@ -51,7 +78,7 @@ const SECTION_CONFIG = {
         fields: [
             { key: 'name', type: 'text', placeholder: 'Аренда' },
             { key: 'amount', type: 'number', placeholder: '50000' },
-            { key: 'startDate', type: 'text', placeholder: 'июль.2026' },
+            { key: 'startDate', type: 'month' },
             { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
             { key: 'growth', type: 'number', placeholder: '10' }
         ],
@@ -63,7 +90,7 @@ const SECTION_CONFIG = {
         fields: [
             { key: 'name', type: 'text', placeholder: 'Реклама' },
             { key: 'amount', type: 'number', placeholder: '30000' },
-            { key: 'startDate', type: 'text', placeholder: 'июль.2026' },
+            { key: 'startDate', type: 'month' },
             { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
             { key: 'growth', type: 'number', placeholder: '5' }
         ],
@@ -76,7 +103,7 @@ const SECTION_CONFIG = {
             { key: 'position', type: 'text', placeholder: 'Токарь' },
             { key: 'salary', type: 'number', placeholder: '80000' },
             { key: 'count', type: 'number', placeholder: '2' },
-            { key: 'hireDate', type: 'text', placeholder: 'июнь.2026' },
+            { key: 'hireDate', type: 'month' },
             { key: 'growth', type: 'number', placeholder: '7' }
         ],
         emptyRow: () => ({ position: '', salary: '', count: '', hireDate: '', growth: '' })
@@ -150,12 +177,20 @@ function renderRowHtml(section, row, idx, config) {
     const cells = config.fields.map(field => {
         const val = row[field.key] !== undefined ? row[field.key] : '';
         const safeVal = String(val).replace(/"/g, '&quot;');
+
         if (field.type === 'select') {
             const opts = field.options.map(o =>
                 `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`
             ).join('');
             return `<td><select onchange="updateField('${section}', ${idx}, '${field.key}', this.value)">${opts}</select></td>`;
         }
+
+        if (field.type === 'month') {
+            const inputVal = russianToMonthInput(safeVal);
+            return `<td><input type="month" value="${inputVal}"
+                onchange="updateField('${section}', ${idx}, '${field.key}', this.value)"></td>`;
+        }
+
         return `<td><input type="${field.type}" value="${safeVal}" placeholder="${field.placeholder || ''}"
             oninput="updateField('${section}', ${idx}, '${field.key}', this.value)"></td>`;
     }).join('');
@@ -169,6 +204,8 @@ function updateField(section, idx, key, value) {
     const field = config.fields.find(f => f.key === key);
     if (field && field.type === 'number') {
         projectData[section][idx][key] = value === '' ? '' : parseFloat(value);
+    } else if (field && field.type === 'month') {
+        projectData[section][idx][key] = monthInputToRussian(value);
     } else {
         projectData[section][idx][key] = value;
     }
