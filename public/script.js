@@ -211,16 +211,16 @@ function renderSection(section) {
                     <input id="g1" type="number" value="${projectData.G.creditPercent || 50}" min="0" max="100">
                 </div>
                 <div class="form-group">
-                    <label>Субсидии (%)</label>
-                    <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100">
+                    <label>Ставка по кредиту (%)</label>
+                    <input id="g4" type="number" value="${projectData.G.creditRate || 9}" min="0">
                 </div>
                 <div class="form-group">
                     <label>Собственный капитал (%)</label>
                     <input id="g3" type="number" value="${projectData.G.equityPercent || 50}" min="0" max="100">
                 </div>
                 <div class="form-group">
-                    <label>Ставка по кредиту (%)</label>
-                    <input id="g4" type="number" value="${projectData.G.creditRate || 9}" min="0">
+                    <label>Субсидии (%)</label>
+                    <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100">
                 </div>
             </div>
             <div class="save-btn-row">
