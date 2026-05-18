@@ -327,6 +327,23 @@ body.dark .btn-secondary:hover {
     color: var(--text);
 }
 
+.section-main-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border);
+}
+
+.section-description {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    max-width: 680px;
+}
+
 /* ── FORM FIELDS ── */
 .form-grid {
     display: grid;

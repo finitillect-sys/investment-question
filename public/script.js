@@ -203,6 +203,8 @@ function renderSection(section) {
         renderTableSection(section);
     } else if (section === 'G') {
         content.innerHTML = `
+            <h2 class="section-main-title">Раздел G. Структура финансирования</h2>
+            <p class="section-description">Размер финансирования будет рассчитан автоматически исходя из объективной потребности проекта в деньгах. Укажите процентное соотношение вложений исходя из принципа — возвратное или невозвратное финансирование будет использовано.</p>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Кредит (%)</label>
