@@ -80,7 +80,7 @@ const SECTION_CONFIG = {
             { key: 'name',        type: 'text',   placeholder: 'Аренда' },
             { key: 'amount',      type: 'number', placeholder: '50000' },
             { key: 'startDate',   type: 'month' },
-            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
+            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
             { key: 'growth',      type: 'number', placeholder: '10' }
         ],
         emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
@@ -92,7 +92,7 @@ const SECTION_CONFIG = {
             { key: 'name',        type: 'text',   placeholder: 'Реклама' },
             { key: 'amount',      type: 'number', placeholder: '30000' },
             { key: 'startDate',   type: 'month' },
-            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
+            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
             { key: 'growth',      type: 'number', placeholder: '5' }
         ],
         emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })

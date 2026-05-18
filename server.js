@@ -109,8 +109,12 @@ app.post('/calculate', (req, res) => {
       const sd  = parseRussianDate(c.startDate);
       const csy = sd ? sd.getFullYear() : startYear;
       if (year < csy) return;
+      if (c.periodicity === 'единовременно') {
+        if (year === csy) total += c.amount;
+        return;
+      }
       let amt = c.amount;
-      if (c.periodicity === 'ежемесячно')    amt *= 12;
+      if (c.periodicity === 'ежемесячно')         amt *= 12;
       else if (c.periodicity === 'ежеквартально') amt *= 4;
       total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
     });
@@ -125,8 +129,12 @@ app.post('/calculate', (req, res) => {
       const sd  = parseRussianDate(c.startDate);
       const csy = sd ? sd.getFullYear() : startYear;
       if (year < csy) return;
+      if (c.periodicity === 'единовременно') {
+        if (year === csy) total += c.amount;
+        return;
+      }
       let amt = c.amount;
-      if (c.periodicity === 'ежемесячно')    amt *= 12;
+      if (c.periodicity === 'ежемесячно')         amt *= 12;
       else if (c.periodicity === 'ежеквартально') amt *= 4;
       total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
     });
