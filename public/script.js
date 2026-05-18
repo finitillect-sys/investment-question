@@ -243,9 +243,15 @@ function renderSection(section) {
                 </div>
                 <div class="form-group">
                     <label>Валюта</label>
-                    <select id="a8" onchange="onCurrencyChange(this.value)">
-                        ${CURRENCIES.map(c => `<option value="${c}" ${(projectData.A.currency || 'RUB') === c ? 'selected' : ''}>${c}</option>`).join('')}
-                    </select>
+                    <div class="custom-select-wrap" id="csel-wrap-a8">
+                        <div class="custom-select-trigger" id="csel-a8"
+                             data-section="A" data-idx="0" data-key="currency"
+                             data-mode="currency" data-value="${projectData.A.currency || 'RUB'}"
+                             onclick="openCustomSelect('a8',this)">
+                            <span class="csel-label">${projectData.A.currency || 'RUB'}</span>${CSEL_CHEVRON}
+                        </div>
+                        <div id="csel-popup-a8" class="custom-select-popup" style="display:none"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Остаток ДС на старте</label>
@@ -325,20 +331,31 @@ function renderRowHtml(section, row, idx, config) {
         const safeVal = String(val).replace(/"/g, '&quot;');
 
         if (field.type === 'select') {
-            const opts = field.options.map(o =>
-                `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`
-            ).join('');
-            return `<td><select onchange="updateField('${section}',${idx},'${field.key}',this.value)">${opts}</select></td>`;
+            const sId = `${section}-${idx}-${field.key}`;
+            const displayVal = safeVal || (field.options && field.options[0]) || '';
+            return `<td><div class="custom-select-wrap" id="csel-wrap-${sId}">
+                <div class="custom-select-trigger" id="csel-${sId}"
+                     data-section="${section}" data-idx="${idx}" data-key="${field.key}"
+                     data-mode="" data-value="${safeVal}"
+                     onclick="openCustomSelect('${sId}',this)">
+                    <span class="csel-label">${displayVal}</span>${CSEL_CHEVRON}
+                </div>
+                <div id="csel-popup-${sId}" class="custom-select-popup" style="display:none"></div>
+            </div></td>`;
         }
 
         if (field.type === 'product-select') {
-            const products = projectData.E || [];
-            const emptyOpt = `<option value="" ${!val ? 'selected' : ''}>— выберите продукт —</option>`;
-            const opts = products.map(p => {
-                const pName = String(p.product || '').replace(/"/g, '&quot;');
-                return `<option value="${pName}" ${pName === safeVal ? 'selected' : ''}>${pName || '(без названия)'}</option>`;
-            }).join('');
-            return `<td><select class="product-select" onchange="updateField('${section}',${idx},'${field.key}',this.value)">${emptyOpt}${opts}</select></td>`;
+            const sId = `${section}-${idx}-${field.key}`;
+            const displayVal = safeVal || '— выберите продукт —';
+            return `<td><div class="custom-select-wrap custom-select-product" id="csel-wrap-${sId}">
+                <div class="custom-select-trigger" id="csel-${sId}"
+                     data-section="${section}" data-idx="${idx}" data-key="${field.key}"
+                     data-mode="product" data-value="${safeVal}"
+                     onclick="openCustomSelect('${sId}',this)">
+                    <span class="csel-label">${displayVal}</span>${CSEL_CHEVRON}
+                </div>
+                <div id="csel-popup-${sId}" class="custom-select-popup" style="display:none"></div>
+            </div></td>`;
         }
 
         if (field.type === 'month') {
@@ -938,9 +955,100 @@ function pickMonth(inputId, year, monthIdx) {
     closeMonthPicker();
 }
 
+// ── Custom Select ─────────────────────────────────────────────────────────────
+
+let _activeSelectId = null;
+
+const CSEL_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>`;
+
+function openCustomSelect(selectId, triggerEl) {
+    if (_activeSelectId && _activeSelectId !== selectId) closeCustomSelect();
+    if (_activeSelectId === selectId) { closeCustomSelect(); return; }
+
+    const popup = document.getElementById('csel-popup-' + selectId);
+    if (!popup) return;
+
+    const section = triggerEl.dataset.section;
+    const key     = triggerEl.dataset.key;
+    const mode    = triggerEl.dataset.mode || '';
+    const current = triggerEl.dataset.value || '';
+
+    let options = [];
+
+    if (mode === 'currency') {
+        options = CURRENCIES.map(c => ({ value: c, label: c }));
+    } else if (mode === 'product') {
+        options = [{ value: '', label: '— выберите продукт —' }].concat(
+            (projectData.E || []).map(p => {
+                const n = String(p.product || '');
+                return { value: n, label: n || '(без названия)' };
+            })
+        );
+    } else if (section && SECTION_CONFIG[section]) {
+        const field = SECTION_CONFIG[section].fields.find(f => f.key === key);
+        if (field && field.options) {
+            options = field.options.map(o => ({ value: o, label: o }));
+        }
+    }
+
+    popup._cselOptions = options;
+    popup.innerHTML = options.map((o, i) =>
+        `<button class="custom-select-option${o.value === current ? ' csel-selected' : ''}"
+            onclick="pickSelectOption('${selectId}',${i})">${o.label}</button>`
+    ).join('');
+
+    const rect = triggerEl.getBoundingClientRect();
+    popup.style.top      = (rect.bottom + 4) + 'px';
+    popup.style.left     = Math.min(rect.left, window.innerWidth - 230) + 'px';
+    popup.style.minWidth = rect.width + 'px';
+    popup.style.display  = 'block';
+    _activeSelectId = selectId;
+}
+
+function closeCustomSelect() {
+    if (_activeSelectId) {
+        const p = document.getElementById('csel-popup-' + _activeSelectId);
+        if (p) p.style.display = 'none';
+        _activeSelectId = null;
+    }
+}
+
+function pickSelectOption(selectId, optIdx) {
+    const popup   = document.getElementById('csel-popup-' + selectId);
+    const trigger = document.getElementById('csel-' + selectId);
+    if (!popup || !trigger) return;
+
+    const opt = (popup._cselOptions || [])[optIdx];
+    if (!opt) return;
+
+    const value   = opt.value;
+    const section = trigger.dataset.section;
+    const idx     = parseInt(trigger.dataset.idx || '0');
+    const key     = trigger.dataset.key;
+    const mode    = trigger.dataset.mode || '';
+
+    const labelEl = trigger.querySelector('.csel-label');
+    if (labelEl) labelEl.textContent = opt.label;
+    trigger.dataset.value = value;
+
+    if (mode === 'currency') {
+        onCurrencyChange(value);
+    } else if (section && section !== 'A') {
+        updateField(section, idx, key, value);
+    } else if (section === 'A') {
+        projectData.A[key] = value;
+        saveToStorage();
+    }
+
+    closeCustomSelect();
+}
+
 document.addEventListener('click', e => {
     if (_activePickerId && document.contains(e.target) && !e.target.closest('.month-picker-wrap')) {
         closeMonthPicker();
+    }
+    if (_activeSelectId && document.contains(e.target) && !e.target.closest('.custom-select-wrap')) {
+        closeCustomSelect();
     }
 });
 
