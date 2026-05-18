@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инвестиционный опросный лист</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Инвестиционный опросный лист</h1>
+            <button id="themeToggle" class="theme-btn">🌙 Тёмная тема</button>
+        </header>
+
+        <div class="nav-sections">
+            <button class="nav-btn" data-section="A">A. Общие данные</button>
+            <button class="nav-btn" data-section="B">B. Средства производства</button>
+            <button class="nav-btn" data-section="E">E. Продукты</button>
+            <button class="nav-btn" data-section="C1">C1. Прямые затраты (на ед.)</button>
+            <button class="nav-btn" data-section="C2">C2. Косвенные затраты</button>
+            <button class="nav-btn" data-section="D">D. АХР</button>
+            <button class="nav-btn" data-section="F">F. Персонал</button>
+            <button class="nav-btn" data-section="G">G. Финансирование</button>
+        </div>
+
+        <div id="content" class="content">
+            <!-- Сюда динамически загружается форма раздела -->
+        </div>
+
+        <div class="actions">
+            <button id="calculateBtn" class="btn-primary">📈 Рассчитать проект</button>
+            <button id="exportCSVBtn" class="btn-secondary">📄 Экспорт CSV</button>
+            <button id="resetBtn" class="btn-danger">🗑️ Сбросить все данные</button>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>Результаты расчёта</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
