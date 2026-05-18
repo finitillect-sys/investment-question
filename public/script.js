@@ -939,7 +939,9 @@ function pickMonth(inputId, year, monthIdx) {
 }
 
 document.addEventListener('click', e => {
-    if (_activePickerId && !e.target.closest('.month-picker-wrap')) closeMonthPicker();
+    if (_activePickerId && document.contains(e.target) && !e.target.closest('.month-picker-wrap')) {
+        closeMonthPicker();
+    }
 });
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
