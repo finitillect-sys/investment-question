@@ -45,7 +45,7 @@ const SECTION_CONFIG = {
         columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата покупки'],
         fields: [
             { key: 'name',   type: 'text',   placeholder: 'Станок ЧПУ' },
-            { key: 'amount', type: 'number', placeholder: '300000' },
+            { key: 'amount', type: 'money',  placeholder: '300 000' },
             { key: 'date',   type: 'month' }
         ],
         emptyRow: () => ({ name: '', amount: '', date: '' })
@@ -55,7 +55,7 @@ const SECTION_CONFIG = {
         columns: cur => ['Продукт', cur ? `Цена (${cur})` : 'Цена', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
         fields: [
             { key: 'product',   type: 'text',   placeholder: 'Электросамокат' },
-            { key: 'price',     type: 'number', placeholder: '25000' },
+            { key: 'price',     type: 'money',  placeholder: '25 000' },
             { key: 'quantity',  type: 'number', placeholder: '100' },
             { key: 'startDate', type: 'month' },
             { key: 'growth',    type: 'number', placeholder: '24' }
@@ -68,7 +68,7 @@ const SECTION_CONFIG = {
         fields: [
             { key: 'product',      type: 'product-select' },
             { key: 'costItem',     type: 'text',   placeholder: 'Материалы' },
-            { key: 'amountPerUnit', type: 'number', placeholder: '8500' },
+            { key: 'amountPerUnit', type: 'money',  placeholder: '8 500' },
             { key: 'growth',       type: 'number', placeholder: '10' }
         ],
         emptyRow: () => ({ product: '', costItem: '', amountPerUnit: '', growth: '' })
@@ -78,7 +78,7 @@ const SECTION_CONFIG = {
         columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
         fields: [
             { key: 'name',        type: 'text',   placeholder: 'Аренда' },
-            { key: 'amount',      type: 'number', placeholder: '50000' },
+            { key: 'amount',      type: 'money',  placeholder: '50 000' },
             { key: 'startDate',   type: 'month' },
             { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
             { key: 'growth',      type: 'number', placeholder: '10' }
@@ -90,7 +90,7 @@ const SECTION_CONFIG = {
         columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
         fields: [
             { key: 'name',        type: 'text',   placeholder: 'Реклама' },
-            { key: 'amount',      type: 'number', placeholder: '30000' },
+            { key: 'amount',      type: 'money',  placeholder: '30 000' },
             { key: 'startDate',   type: 'month' },
             { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
             { key: 'growth',      type: 'number', placeholder: '5' }
@@ -102,7 +102,7 @@ const SECTION_CONFIG = {
         columns: cur => ['Должность', cur ? `Оклад (${cur})` : 'Оклад', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
         fields: [
             { key: 'position', type: 'text',   placeholder: 'Токарь' },
-            { key: 'salary',   type: 'number', placeholder: '80000' },
+            { key: 'salary',   type: 'money',  placeholder: '80 000' },
             { key: 'count',    type: 'number', placeholder: '2' },
             { key: 'hireDate', type: 'month' },
             { key: 'growth',   type: 'number', placeholder: '7' }
@@ -130,6 +130,31 @@ function currencyLabel() {
 function thouLabel() {
     const cur = currencyLabel();
     return cur ? `тыс. ${cur}` : 'тыс.';
+}
+
+function fmtMoney(v) {
+    if (v === '' || v === null || v === undefined) return '';
+    const n = parseFloat(String(v).replace(/[\s\u00A0]/g, '').replace(',', '.'));
+    if (isNaN(n)) return '';
+    return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 });
+}
+
+function parseMoney(s) {
+    if (s === '' || s === null || s === undefined) return '';
+    const n = parseFloat(String(s).replace(/[\s\u00A0]/g, '').replace(',', '.'));
+    return isNaN(n) ? '' : n;
+}
+
+function moneyFocus(el) {
+    const v = parseMoney(el.value);
+    el.value = v !== '' ? String(v) : '';
+    el.select();
+}
+
+function moneyBlur(el, section, idx, key) {
+    const parsed = parseMoney(el.value);
+    el.value = parsed !== '' ? fmtMoney(parsed) : '';
+    if (section !== undefined) updateField(section, idx, key, parsed);
 }
 
 const SECTION_TITLES = {
@@ -214,7 +239,10 @@ function renderSection(section) {
                 </div>
                 <div class="form-group">
                     <label>Остаток ДС на старте</label>
-                    <input id="a6" type="number" value="${projectData.A.cashStart || 0}">
+                    <input id="a6" type="text" inputmode="numeric"
+                        value="${fmtMoney(projectData.A.cashStart || 0)}"
+                        onfocus="moneyFocus(this)"
+                        onblur="this.value = fmtMoney(parseMoney(this.value) || 0)">
                 </div>
             </div>
             <div class="save-btn-row">
@@ -309,6 +337,13 @@ function renderRowHtml(section, row, idx, config) {
                 onchange="updateField('${section}',${idx},'${field.key}',this.value)"></td>`;
         }
 
+        if (field.type === 'money') {
+            const displayVal = val !== '' ? fmtMoney(val) : '';
+            return `<td><input type="text" inputmode="numeric" value="${displayVal}" placeholder="${field.placeholder || ''}"
+                onfocus="moneyFocus(this)"
+                onblur="moneyBlur(this,'${section}',${idx},'${field.key}')"></td>`;
+        }
+
         return `<td><input type="${field.type}" value="${safeVal}" placeholder="${field.placeholder || ''}"
             oninput="updateField('${section}',${idx},'${field.key}',this.value)"></td>`;
     }).join('');
@@ -320,8 +355,8 @@ function updateField(section, idx, key, value) {
     if (!projectData[section][idx]) return;
     const config = SECTION_CONFIG[section];
     const field  = config.fields.find(f => f.key === key);
-    if (field && field.type === 'number') {
-        projectData[section][idx][key] = value === '' ? '' : parseFloat(value);
+    if (field && (field.type === 'number' || field.type === 'money')) {
+        projectData[section][idx][key] = value === '' ? '' : parseFloat(String(value).replace(/[\s\u00A0]/g, '').replace(',', '.'));
     } else if (field && field.type === 'month') {
         projectData[section][idx][key] = monthInputToRussian(value);
     } else {
@@ -361,7 +396,7 @@ function saveSectionA() {
         horizon:     parseInt(document.getElementById('a3').value),
         startDate:   document.getElementById('a4').value,
         firstSale:   document.getElementById('a5').value,
-        cashStart:   parseFloat(document.getElementById('a6').value),
+        cashStart:   parseMoney(document.getElementById('a6').value) || 0,
         region:      document.getElementById('a7').value,
         currency:    document.getElementById('a8').value
     };
