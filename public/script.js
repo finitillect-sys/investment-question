@@ -11,7 +11,78 @@ let projectData = {
 
 let currentSection = 'A';
 
-// Загрузка сохранённых данных из localStorage
+const SECTION_CONFIG = {
+    B: {
+        title: 'Средства производства',
+        columns: ['Название', 'Сумма (руб)', 'Дата покупки'],
+        fields: [
+            { key: 'name', type: 'text', placeholder: 'Станок ЧПУ' },
+            { key: 'amount', type: 'number', placeholder: '300000' },
+            { key: 'date', type: 'text', placeholder: 'июнь.2026' }
+        ],
+        emptyRow: () => ({ name: '', amount: '', date: '' })
+    },
+    E: {
+        title: 'Продукты и услуги',
+        columns: ['Продукт', 'Цена (руб)', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
+        fields: [
+            { key: 'product', type: 'text', placeholder: 'Электросамокат' },
+            { key: 'price', type: 'number', placeholder: '25000' },
+            { key: 'quantity', type: 'number', placeholder: '100' },
+            { key: 'startDate', type: 'text', placeholder: 'август.2026' },
+            { key: 'growth', type: 'number', placeholder: '24' }
+        ],
+        emptyRow: () => ({ product: '', price: '', quantity: '', startDate: '', growth: '' })
+    },
+    C1: {
+        title: 'Прямые затраты на единицу продукции',
+        columns: ['Продукт', 'Статья затрат', 'Сумма на ед. (руб)', 'Рост %'],
+        fields: [
+            { key: 'product', type: 'text', placeholder: 'Электросамокат' },
+            { key: 'costItem', type: 'text', placeholder: 'Материалы' },
+            { key: 'amountPerUnit', type: 'number', placeholder: '8500' },
+            { key: 'growth', type: 'number', placeholder: '10' }
+        ],
+        emptyRow: () => ({ product: '', costItem: '', amountPerUnit: '', growth: '' })
+    },
+    C2: {
+        title: 'Косвенные производственные затраты',
+        columns: ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
+        fields: [
+            { key: 'name', type: 'text', placeholder: 'Аренда' },
+            { key: 'amount', type: 'number', placeholder: '50000' },
+            { key: 'startDate', type: 'text', placeholder: 'июль.2026' },
+            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
+            { key: 'growth', type: 'number', placeholder: '10' }
+        ],
+        emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
+    },
+    D: {
+        title: 'Административно-хозяйственные затраты',
+        columns: ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
+        fields: [
+            { key: 'name', type: 'text', placeholder: 'Реклама' },
+            { key: 'amount', type: 'number', placeholder: '30000' },
+            { key: 'startDate', type: 'text', placeholder: 'июль.2026' },
+            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год'] },
+            { key: 'growth', type: 'number', placeholder: '5' }
+        ],
+        emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
+    },
+    F: {
+        title: 'Персонал',
+        columns: ['Должность', 'Оклад (руб)', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
+        fields: [
+            { key: 'position', type: 'text', placeholder: 'Токарь' },
+            { key: 'salary', type: 'number', placeholder: '80000' },
+            { key: 'count', type: 'number', placeholder: '2' },
+            { key: 'hireDate', type: 'text', placeholder: 'июнь.2026' },
+            { key: 'growth', type: 'number', placeholder: '7' }
+        ],
+        emptyRow: () => ({ position: '', salary: '', count: '', hireDate: '', growth: '' })
+    }
+};
+
 function loadFromStorage() {
     const saved = localStorage.getItem('investmentProject');
     if (saved) {
@@ -19,15 +90,13 @@ function loadFromStorage() {
     }
 }
 
-// Сохранение в localStorage
 function saveToStorage() {
     localStorage.setItem('investmentProject', JSON.stringify(projectData));
 }
 
-// Отображение текущего раздела
 function renderSection(section) {
     const content = document.getElementById('content');
-    
+
     if (section === 'A') {
         content.innerHTML = `
             <h2>Раздел A. Общие данные о проекте</h2>
@@ -40,24 +109,8 @@ function renderSection(section) {
             <div class="form-group"><label>Регион реализации</label><input id="a7" value="${projectData.A.region || 'Россия'}"></div>
             <button onclick="saveSectionA()" class="btn-primary">Сохранить раздел A</button>
         `;
-    } else if (section === 'B') {
-        renderTableSection('B', 'Средства производства', ['Название', 'Сумма (руб)', 'Дата покупки'], 
-            `Формат: Название; Сумма; месяц.год<br>Пример: Станок; 300000; июнь.2026`);
-    } else if (section === 'E') {
-        renderTableSection('E', 'Продукты и услуги', ['Продукт', 'Цена (руб)', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
-            `Формат: Продукт; Цена; Кол-во; месяц.год; Рост%<br>Пример: Электросамокат; 25000; 100; август.2026; 24`);
-    } else if (section === 'C1') {
-        renderTableSection('C1', 'Прямые затраты на единицу продукции', ['Продукт', 'Статья затрат', 'Сумма на ед. (руб)', 'Рост %'],
-            `Формат: Продукт; Статья; Сумма; Рост%<br>Пример: Юниор; Материалы; 8500; 10`);
-    } else if (section === 'C2') {
-        renderTableSection('C2', 'Косвенные производственные затраты', ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
-            `Формат: Название; Сумма; месяц.год; периодичность; Рост%<br>Пример: Аренда; 50000; июль.2026; ежемесячно; 10`);
-    } else if (section === 'D') {
-        renderTableSection('D', 'Административно-хозяйственные затраты', ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
-            `Формат: Название; Сумма; месяц.год; периодичность; Рост%<br>Пример: Реклама; 30000; июль.2026; ежемесячно; 5`);
-    } else if (section === 'F') {
-        renderTableSection('F', 'Персонал', ['Должность', 'Оклад (руб)', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
-            `Формат: Должность; Оклад; Кол-во; месяц.год; Рост%<br>Пример: Токарь; 80000; 2; июнь.2026; 7`);
+    } else if (SECTION_CONFIG[section]) {
+        renderTableSection(section);
     } else if (section === 'G') {
         content.innerHTML = `
             <h2>Раздел G. Финансирование</h2>
@@ -70,62 +123,73 @@ function renderSection(section) {
     }
 }
 
-function renderTableSection(section, title, columns, instruction) {
+function renderTableSection(section) {
+    const config = SECTION_CONFIG[section];
     const data = projectData[section] || [];
     const content = document.getElementById('content');
-    
-    let tableHtml = '<table><thead><tr>';
-    columns.forEach(col => tableHtml += `<th>${col}</th>`);
-    tableHtml += '<th>Действия</th></tr></thead><tbody>';
-    
-    data.forEach((row, idx) => {
-        tableHtml += '<tr>';
-        Object.values(row).forEach(val => tableHtml += `<td>${val}</td>`);
-        tableHtml += `<td><button onclick="deleteRow('${section}', ${idx})">❌</button></td>`;
-        tableHtml += '</tr>';
-    });
-    tableHtml += '</tbody></table>';
-    
+
+    let headHtml = config.columns.map(c => `<th>${c}</th>`).join('');
+
+    let rowsHtml = data.map((row, idx) => renderRowHtml(section, row, idx, config)).join('');
+
     content.innerHTML = `
-        <h2>Раздел ${section}. ${title}</h2>
-        <div class="form-group">
-            <label>${instruction}</label>
-            <textarea id="newRowInput" placeholder="Введите строку в формате..."></textarea>
-            <button onclick="addRow('${section}')" class="btn-primary" style="margin-top:10px">➕ Добавить строку</button>
+        <h2>Раздел ${section}. ${config.title}</h2>
+        <div class="table-wrapper">
+            <table class="editable-table">
+                <thead><tr>${headHtml}<th>Удалить</th></tr></thead>
+                <tbody id="tbody-${section}">
+                    ${rowsHtml}
+                </tbody>
+            </table>
         </div>
-        <h3>Текущие данные:</h3>
-        ${tableHtml}
+        <button class="btn-primary add-row-btn" onclick="addEmptyRow('${section}')">➕ Добавить строку</button>
     `;
 }
 
-function addRow(section) {
-    const input = document.getElementById('newRowInput');
-    const line = input.value.trim();
-    if (!line) return;
-    
-    const parts = line.split(';').map(p => p.trim());
-    let newItem = {};
-    
-    if (section === 'B') {
-        if (parts.length < 3) { alert('Ошибка: нужно 3 поля (Название; Сумма; Дата)'); return; }
-        newItem = { name: parts[0], amount: parseFloat(parts[1]), date: parts[2] };
-    } else if (section === 'E') {
-        if (parts.length < 5) { alert('Ошибка: нужно 5 полей'); return; }
-        newItem = { product: parts[0], price: parseFloat(parts[1]), quantity: parseFloat(parts[2]), startDate: parts[3], growth: parseFloat(parts[4]) };
-    } else if (section === 'C1') {
-        if (parts.length < 4) { alert('Ошибка: нужно 4 поля'); return; }
-        newItem = { product: parts[0], costItem: parts[1], amountPerUnit: parseFloat(parts[2]), growth: parseFloat(parts[3]) };
-    } else if (section === 'C2' || section === 'D') {
-        if (parts.length < 5) { alert('Ошибка: нужно 5 полей'); return; }
-        newItem = { name: parts[0], amount: parseFloat(parts[1]), startDate: parts[2], periodicity: parts[3], growth: parseFloat(parts[4]) };
-    } else if (section === 'F') {
-        if (parts.length < 5) { alert('Ошибка: нужно 5 полей'); return; }
-        newItem = { position: parts[0], salary: parseFloat(parts[1]), count: parseFloat(parts[2]), hireDate: parts[3], growth: parseFloat(parts[4]) };
+function renderRowHtml(section, row, idx, config) {
+    const cells = config.fields.map(field => {
+        const val = row[field.key] !== undefined ? row[field.key] : '';
+        const safeVal = String(val).replace(/"/g, '&quot;');
+        if (field.type === 'select') {
+            const opts = field.options.map(o =>
+                `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`
+            ).join('');
+            return `<td><select onchange="updateField('${section}', ${idx}, '${field.key}', this.value)">${opts}</select></td>`;
+        }
+        return `<td><input type="${field.type}" value="${safeVal}" placeholder="${field.placeholder || ''}"
+            oninput="updateField('${section}', ${idx}, '${field.key}', this.value)"></td>`;
+    }).join('');
+
+    return `<tr id="row-${section}-${idx}">${cells}<td><button class="btn-delete" onclick="deleteRow('${section}', ${idx})">✕</button></td></tr>`;
+}
+
+function updateField(section, idx, key, value) {
+    if (!projectData[section][idx]) return;
+    const config = SECTION_CONFIG[section];
+    const field = config.fields.find(f => f.key === key);
+    if (field && field.type === 'number') {
+        projectData[section][idx][key] = value === '' ? '' : parseFloat(value);
+    } else {
+        projectData[section][idx][key] = value;
     }
-    
-    projectData[section].push(newItem);
     saveToStorage();
-    renderSection(section);
+}
+
+function addEmptyRow(section) {
+    const config = SECTION_CONFIG[section];
+    projectData[section].push(config.emptyRow());
+    saveToStorage();
+
+    const tbody = document.getElementById(`tbody-${section}`);
+    const idx = projectData[section].length - 1;
+    const row = projectData[section][idx];
+    const tr = document.createElement('tr');
+    tr.id = `row-${section}-${idx}`;
+    tr.innerHTML = renderRowHtml(section, row, idx, config).replace(/^<tr[^>]*>/, '').replace(/<\/tr>$/, '');
+    tbody.appendChild(tr);
+
+    const firstInput = tr.querySelector('input, select');
+    if (firstInput) firstInput.focus();
 }
 
 function deleteRow(section, idx) {
@@ -159,7 +223,6 @@ function saveSectionG() {
     alert('Раздел G сохранён');
 }
 
-// Расчёт проекта
 document.getElementById('calculateBtn')?.addEventListener('click', async () => {
     const response = await fetch('/calculate', {
         method: 'POST',
@@ -167,10 +230,10 @@ document.getElementById('calculateBtn')?.addEventListener('click', async () => {
         body: JSON.stringify(projectData)
     });
     const result = await response.json();
-    
+
     const resultsDiv = document.getElementById('results');
     const resultsContent = document.getElementById('resultsContent');
-    
+
     resultsContent.innerHTML = `
         <h3>Итоги по годам (тыс. руб.)</h3>
         <table><thead><tr>
@@ -190,18 +253,17 @@ document.getElementById('calculateBtn')?.addEventListener('click', async () => {
             </tr>
         `).join('')}
         </tbody></table>
-        
+
         <h3>Инвестиционные показатели (ставка 16%)</h3>
         <p>NPV: ${result.npv} тыс. руб.</p>
         <p>IRR: ${result.irr}%</p>
         <p>PI: ${result.pi}</p>
         <p>Срок окупаемости: ${result.paybackPeriod}</p>
     `;
-    
+
     resultsDiv.style.display = 'block';
 });
 
-// Навигация
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         currentSection = btn.dataset.section;
@@ -209,12 +271,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-// Тёмная тема
 document.getElementById('themeToggle')?.addEventListener('click', () => {
     document.body.classList.toggle('dark');
 });
 
-// Экспорт CSV
 document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     const resultsContent = document.getElementById('resultsContent');
     const table = resultsContent?.querySelector('table');
@@ -238,7 +298,6 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
-// Сброс
 document.getElementById('resetBtn')?.addEventListener('click', () => {
     if (confirm('Удалить все данные?')) {
         localStorage.removeItem('investmentProject');
@@ -246,6 +305,5 @@ document.getElementById('resetBtn')?.addEventListener('click', () => {
     }
 });
 
-// Инициализация
 loadFromStorage();
 renderSection('A');

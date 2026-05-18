@@ -160,3 +160,79 @@ th {
     gap: 15px;
     margin-top: 20px;
 }
+
+.table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.editable-table {
+    display: table;
+    min-width: 100%;
+}
+
+.editable-table td input,
+.editable-table td select {
+    width: 100%;
+    min-width: 80px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.editable-table td input:focus,
+.editable-table td select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--bg);
+}
+
+.editable-table td input:hover,
+.editable-table td select:hover {
+    border-color: var(--border);
+    background: var(--bg);
+}
+
+.editable-table td select {
+    cursor: pointer;
+}
+
+.editable-table td {
+    padding: 4px 6px;
+}
+
+.btn-delete {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid transparent;
+    padding: 4px 10px;
+    font-size: 13px;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.btn-delete:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.add-row-btn {
+    margin-top: 4px;
+}
+
+body.dark .editable-table td input,
+body.dark .editable-table td select {
+    color: var(--text);
+}
+
+body.dark .editable-table td input:focus,
+body.dark .editable-table td select:focus,
+body.dark .editable-table td input:hover,
+body.dark .editable-table td select:hover {
+    background: var(--bg);
+}
