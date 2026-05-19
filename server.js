@@ -40,7 +40,7 @@ function calculateIRR(cashFlows) {
     rate = rate - npv / dnpv;
   }
   if (!isFinite(rate) || rate < -1) return null;
-  return (rate * 100).toFixed(1);
+  return rate * 100;
 }
 
 app.post('/calculate', (req, res) => {
@@ -291,7 +291,7 @@ app.post('/calculate', (req, res) => {
     cashCumulative:       years.map(y => cashCumulative[y]),
     requiredLoan:         requiredLoan.toFixed(0),
     npv:                  npv.toFixed(0),
-    irr:                  irr !== null ? Number(irr.toFixed(2)) : 'н/д',
+    irr:                  (typeof irr === 'number' && isFinite(irr)) ? Number(irr.toFixed(2)) : 'н/д',
     pi,
     paybackPeriod
   });
