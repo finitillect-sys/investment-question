@@ -200,7 +200,7 @@ body.dark .nav-btn.active { color: #a5b4fc; }
 body.dark .theme-btn { color: var(--text); }
 body.dark .theme-btn:hover { color: #a5b4fc; }
 
-.btn-ghost-demo {
+.btn-ghost-demo, .btn-ghost-help {
     width: 100%;
     padding: 9px 12px;
     background: transparent;
@@ -217,10 +217,105 @@ body.dark .theme-btn:hover { color: #a5b4fc; }
     align-items: center;
     gap: 7px;
 }
-.btn-ghost-demo:hover {
+.btn-ghost-demo:hover, .btn-ghost-help:hover {
     background: var(--accent-light);
     color: var(--accent);
     border-color: var(--accent);
+}
+
+/* ── HELP MODAL ─────────────────────────────────────────────── */
+.help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: helpFadeIn 0.18s ease-out;
+}
+.help-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 17, 26, 0.55);
+    backdrop-filter: blur(2px);
+}
+.help-modal-content {
+    position: relative;
+    background: var(--card);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 32px 36px 28px;
+    width: min(720px, calc(100vw - 32px));
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    animation: helpSlideUp 0.22s ease-out;
+}
+.help-modal-content h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    color: var(--text);
+}
+.help-modal-content h3 {
+    margin: 22px 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+}
+.help-modal-content p, .help-modal-content ul {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text);
+    margin: 6px 0;
+}
+.help-modal-content ul {
+    padding-left: 20px;
+}
+.help-modal-content li {
+    margin-bottom: 4px;
+}
+.help-modal-content .help-lead {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+.help-modal-content .help-note {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+.help-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.help-modal-close:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+.help-modal-footer {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+}
+@keyframes helpFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes helpSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .btn-ghost-danger {

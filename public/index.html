@@ -60,6 +60,7 @@
             </nav>
             <div class="sidebar-footer">
                 <button id="themeToggle" class="theme-btn"><svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Тёмная тема</button>
+                <button id="helpBtn" class="btn-ghost-help"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Руководство</button>
                 <button id="loadDemoBtn" class="btn-ghost-demo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Демо данные</button>
                 <button id="resetBtn" class="btn-ghost-danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Сбросить данные</button>
             </div>
@@ -97,6 +98,60 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="helpModal" class="help-modal" style="display:none">
+        <div class="help-modal-backdrop" onclick="closeHelpModal()"></div>
+        <div class="help-modal-content">
+            <button class="help-modal-close" onclick="closeHelpModal()" aria-label="Закрыть">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <h2>Краткое руководство</h2>
+            <p class="help-lead">Инструмент позволяет построить десятилетний финансовый прогноз проекта и оценить его инвестиционную привлекательность. Заполните разделы слева, затем нажмите <b>«Рассчитать проект»</b>.</p>
+
+            <h3>1. Заполнение данных</h3>
+            <ul>
+                <li><b>A. Общие данные</b> — название, горизонт планирования (1–20 лет), регион, даты старта и первой продажи, валюта, остаток ДС на старте.</li>
+                <li><b>B. Средства производства</b> — оборудование и единовременные инвестиции с датой приобретения.</li>
+                <li><b>E. Продукты и услуги</b> — что продаём: цена, объём в месяц, дата старта продаж, годовой рост спроса.</li>
+                <li><b>C1. Прямые затраты</b> — переменные затраты на единицу каждого продукта (сырьё, упаковка, доставка).</li>
+                <li><b>C2. Косвенные затраты</b> — производственные расходы, не зависящие от объёма (аренда, электроэнергия, обслуживание).</li>
+                <li><b>D. АХР</b> — административные расходы (бухгалтерия, маркетинг, связь, страховки).</li>
+                <li><b>F. Персонал</b> — оклады, численность, дата найма. Страховые взносы 30% добавляются автоматически.</li>
+                <li><b>G. Финансирование</b> — структура источников (кредит / собственный капитал / субсидии), ставка по кредиту. Сумма займа рассчитывается автоматически по потребности проекта в деньгах.</li>
+            </ul>
+
+            <h3>2. Подсказки по заполнению</h3>
+            <ul>
+                <li>Даты выбираются через календарь — допустимы только месяцы внутри горизонта планирования.</li>
+                <li>Поле <b>«Рост %»</b> — годовое индексирование показателя; применяется автоматически каждый год.</li>
+                <li>Все денежные значения вводятся в основной валюте проекта; результаты выводятся в тысячах этой валюты.</li>
+                <li>Не забудьте нажать <b>«Сохранить»</b> в каждом разделе после изменений.</li>
+            </ul>
+
+            <h3>3. Расчёт и результаты</h3>
+            <p>После нажатия <b>«Рассчитать проект»</b> система построит:</p>
+            <ul>
+                <li><b>KPI-карточки</b>: NPV, IRR, PI, срок окупаемости, потребность в финансировании.</li>
+                <li><b>График</b> ключевых показателей по годам.</li>
+                <li><b>Детальную таблицу</b> прогноза: выручка, затраты, EBITDA, чистая прибыль, движение денежных средств.</li>
+            </ul>
+            <p class="help-note">Ставка дисконтирования зафиксирована на уровне <b>16%</b>.</p>
+
+            <h3>4. Экспорт в Excel</h3>
+            <p>Кнопка <b>«Экспорт Excel»</b> выгружает многостраничный файл со всеми разделами проекта, прогнозом и показателями — готовый для презентации инвесторам.</p>
+
+            <h3>5. Управление данными</h3>
+            <ul>
+                <li><b>Демо данные</b> — заполняет все разделы примером проекта «ВертФерм» (вертикальная городская ферма, 10 лет).</li>
+                <li><b>Сбросить данные</b> — очищает форму и удаляет сохранённые значения.</li>
+                <li>Все введённые данные хранятся локально в вашем браузере — на сервер не отправляются.</li>
+            </ul>
+
+            <div class="help-modal-footer">
+                <button class="btn-primary" onclick="closeHelpModal()">Понятно</button>
+            </div>
+        </div>
     </div>
 
     <script src="/script.js"></script>

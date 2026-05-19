@@ -174,10 +174,7 @@ const DEMO_DATA = {
 
 function loadFromStorage() {
     const saved = localStorage.getItem('investmentProject');
-    if (saved === null) {
-        projectData = JSON.parse(JSON.stringify(DEMO_DATA));
-        saveToStorage();
-    } else {
+    if (saved !== null) {
         projectData = JSON.parse(saved);
     }
 }
@@ -1325,5 +1322,25 @@ document.getElementById('resetBtn')?.addEventListener('click', () => {
     }
 });
 
+// ── Help modal ────────────────────────────────────────────────────────────────
+
+function openHelpModal()  { document.getElementById('helpModal').style.display = 'flex'; }
+function closeHelpModal() { document.getElementById('helpModal').style.display = 'none'; }
+window.openHelpModal  = openHelpModal;
+window.closeHelpModal = closeHelpModal;
+
+document.getElementById('helpBtn')?.addEventListener('click', openHelpModal);
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('helpModal')?.style.display === 'flex') {
+        closeHelpModal();
+    }
+});
+
 loadFromStorage();
 renderSection('A');
+
+// Show guide automatically on first visit
+if (!localStorage.getItem('helpSeen')) {
+    openHelpModal();
+    localStorage.setItem('helpSeen', '1');
+}
