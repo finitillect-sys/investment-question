@@ -1152,11 +1152,31 @@ function openMonthPicker(inputId, fieldKey, tableSection, tableIdx) {
     popup.dataset.tableSection = tableSection !== undefined ? tableSection : '';
     popup.dataset.tableIdx     = tableIdx     !== undefined ? tableIdx     : '';
     _renderPickerContent(popup, inputId, displayYear, selMonth);
-    popup.style.display = 'block';
-    // Position below the input using fixed viewport coordinates
-    const rect = input.getBoundingClientRect();
-    popup.style.top  = (rect.bottom + 6) + 'px';
-    popup.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+    popup.style.visibility = 'hidden';
+    popup.style.display    = 'block';
+    popup.style.top        = '0px';
+    popup.style.left       = '0px';
+    // Measure after render, then clamp to viewport with 8px margin
+    const rect    = input.getBoundingClientRect();
+    const popRect = popup.getBoundingClientRect();
+    const margin  = 8;
+    const vw      = window.innerWidth;
+    const vh      = window.innerHeight;
+
+    let left = rect.left;
+    if (left + popRect.width + margin > vw) left = vw - popRect.width - margin;
+    if (left < margin) left = margin;
+
+    let top = rect.bottom + 6;
+    if (top + popRect.height + margin > vh) {
+        // not enough space below — try above the input
+        const above = rect.top - popRect.height - 6;
+        top = above >= margin ? above : Math.max(margin, vh - popRect.height - margin);
+    }
+
+    popup.style.left       = left + 'px';
+    popup.style.top        = top + 'px';
+    popup.style.visibility = '';
     _activePickerId = inputId;
 }
 
