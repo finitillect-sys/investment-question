@@ -61,6 +61,9 @@
             <div class="sidebar-footer">
                 <button id="themeToggle" class="theme-btn"><svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Тёмная тема</button>
                 <button id="helpBtn" class="btn-ghost-help"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Руководство</button>
+                <button id="exportJsonBtn" class="btn-ghost-io"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Скачать файл</button>
+                <button id="importJsonBtn" class="btn-ghost-io"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Загрузить файл</button>
+                <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none">
                 <button id="loadDemoBtn" class="btn-ghost-demo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Демо данные</button>
                 <button id="resetBtn" class="btn-ghost-danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Сбросить данные</button>
             </div>
@@ -143,6 +146,8 @@
 
             <h3>5. Управление данными</h3>
             <ul>
+                <li><b>Скачать файл</b> — сохраняет все данные проекта в файл <code>.json</code>. Удобно для переноса работы с одного устройства на другое (например, с рабочего ПК на домашний): сохраните файл, перенесите его любым способом (флешка, почта, мессенджер, облако) и загрузите на другом устройстве.</li>
+                <li><b>Загрузить файл</b> — восстанавливает проект из ранее сохранённого <code>.json</code>-файла. Текущие данные при этом заменяются.</li>
                 <li><b>Демо данные</b> — пример заполнения данными инструмента, заполняет все разделы примером проекта «Вертикальная ферма» (вертикальная городская ферма, 10 лет).</li>
                 <li><b>Сбросить данные</b> — очищает форму и удаляет сохранённые значения.</li>
                 <li>Все введённые данные хранятся локально в вашем браузере — на сервер не отправляются.</li>

@@ -200,7 +200,7 @@ body.dark .nav-btn.active { color: #a5b4fc; }
 body.dark .theme-btn { color: var(--text); }
 body.dark .theme-btn:hover { color: #a5b4fc; }
 
-.btn-ghost-demo, .btn-ghost-help {
+.btn-ghost-demo, .btn-ghost-help, .btn-ghost-io {
     width: 100%;
     padding: 9px 12px;
     background: transparent;
@@ -217,7 +217,7 @@ body.dark .theme-btn:hover { color: #a5b4fc; }
     align-items: center;
     gap: 7px;
 }
-.btn-ghost-demo:hover, .btn-ghost-help:hover {
+.btn-ghost-demo:hover, .btn-ghost-help:hover, .btn-ghost-io:hover {
     background: var(--accent-light);
     color: var(--accent);
     border-color: var(--accent);

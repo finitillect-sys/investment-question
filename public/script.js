@@ -1301,6 +1301,52 @@ document.addEventListener('click', e => {
     }
 });
 
+// ── Export/Import project file ───────────────────────────────────────────────
+
+document.getElementById('exportJsonBtn')?.addEventListener('click', () => {
+    const data = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const name = (projectData.A?.name || 'project').replace(/[^\w\u0400-\u04FF\-]+/g, '_');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href     = url;
+    a.download = `${name}_${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Файл данных сохранён');
+});
+
+document.getElementById('importJsonBtn')?.addEventListener('click', () => {
+    document.getElementById('importJsonInput')?.click();
+});
+
+document.getElementById('importJsonInput')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!parsed || typeof parsed !== 'object' || !parsed.A || typeof parsed.A !== 'object') {
+                throw new Error('Invalid format');
+            }
+            if (!confirm('Загрузить данные из файла?\nТекущие данные проекта будут заменены.')) return;
+            projectData = parsed;
+            saveToStorage();
+            renderSection(currentSection);
+            showToast('Данные загружены из файла');
+        } catch (err) {
+            showToast('Ошибка: некорректный файл данных', 'error');
+        }
+    };
+    reader.onerror = () => showToast('Ошибка чтения файла', 'error');
+    reader.readAsText(file);
+    e.target.value = '';
+});
+
 // ── Load demo data ────────────────────────────────────────────────────────────
 
 document.getElementById('loadDemoBtn')?.addEventListener('click', () => {
