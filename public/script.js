@@ -111,9 +111,75 @@ const SECTION_CONFIG = {
     }
 };
 
+const DEMO_DATA = {
+    A: {
+        name:        'ВертФерм',
+        description: 'Вертикальная городская ферма по выращиванию микрозелени, пряных трав и листовых салатов. Продажи ресторанам, отелям, ретейлу и напрямую потребителям через подписку.',
+        horizon:     10,
+        region:      'Москва',
+        startDate:   'январь 2026',
+        firstSale:   'апрель 2026',
+        cashStart:   500000,
+        currency:    'RUB'
+    },
+    B: [
+        { name: 'Стеллажные системы для выращивания',        amount: 1200000, date: 'январь 2026'  },
+        { name: 'Системы LED-освещения',                     amount: 800000,  date: 'январь 2026'  },
+        { name: 'Климатическая система',                     amount: 600000,  date: 'февраль 2026' },
+        { name: 'Автоматическая система полива',             amount: 400000,  date: 'февраль 2026' },
+        { name: 'Ремонт производственного помещения',        amount: 500000,  date: 'март 2026'    },
+        { name: 'Холодильное и упаковочное оборудование',    amount: 350000,  date: 'март 2026'    },
+        { name: 'Электрогрузовик для доставки',              amount: 2500000, date: 'март 2026'    }
+    ],
+    E: [
+        { product: 'Микрозелень (подсолнух, горох, редис)', price: 450,  quantity: 50, startDate: 'апрель 2026', growth: 20 },
+        { product: 'Пряные травы (базилик, кинза, мята)',   price: 600,  quantity: 30, startDate: 'апрель 2026', growth: 15 },
+        { product: 'Листовые салаты (руккола, шпинат)',     price: 350,  quantity: 80, startDate: 'июнь 2026',   growth: 25 },
+        { product: 'Подписочный набор B2C',                 price: 1800, quantity: 20, startDate: 'июль 2026',   growth: 35 }
+    ],
+    C1: [
+        { product: 'Микрозелень (подсолнух, горох, редис)', costItem: 'Семена',                  amountPerUnit: 50,  growth: 5 },
+        { product: 'Микрозелень (подсолнух, горох, редис)', costItem: 'Упаковка',                amountPerUnit: 30,  growth: 5 },
+        { product: 'Пряные травы (базилик, кинза, мята)',   costItem: 'Семена',                  amountPerUnit: 80,  growth: 5 },
+        { product: 'Пряные травы (базилик, кинза, мята)',   costItem: 'Упаковка',                amountPerUnit: 30,  growth: 5 },
+        { product: 'Листовые салаты (руккола, шпинат)',     costItem: 'Семена',                  amountPerUnit: 40,  growth: 5 },
+        { product: 'Листовые салаты (руккола, шпинат)',     costItem: 'Упаковка',                amountPerUnit: 20,  growth: 5 },
+        { product: 'Подписочный набор B2C',                 costItem: 'Упаковка и комплектация', amountPerUnit: 150, growth: 8 },
+        { product: 'Подписочный набор B2C',                 costItem: 'Курьерская доставка',     amountPerUnit: 200, growth: 8 }
+    ],
+    C2: [
+        { name: 'Аренда производственного помещения',     amount: 120000, startDate: 'январь 2026', periodicity: 'ежемесячно',    growth: 7  },
+        { name: 'Электроэнергия',                         amount: 80000,  startDate: 'апрель 2026', periodicity: 'ежемесячно',    growth: 10 },
+        { name: 'Субстрат и питательные растворы',        amount: 50000,  startDate: 'апрель 2026', periodicity: 'ежемесячно',    growth: 8  },
+        { name: 'Техническое обслуживание оборудования',  amount: 40000,  startDate: 'апрель 2026', periodicity: 'ежеквартально', growth: 5  }
+    ],
+    D: [
+        { name: 'Маркетинг и продвижение',   amount: 80000,  startDate: 'апрель 2026',  periodicity: 'ежемесячно',   growth: 5 },
+        { name: 'Бухгалтерия (аутсорсинг)',  amount: 25000,  startDate: 'январь 2026',  periodicity: 'ежемесячно',   growth: 5 },
+        { name: 'Связь и интернет',          amount: 8000,   startDate: 'январь 2026',  periodicity: 'ежемесячно',   growth: 3 },
+        { name: 'Страхование',               amount: 100000, startDate: 'январь 2026',  periodicity: 'единовременно', growth: 0 },
+        { name: 'Сертификация и лицензии',   amount: 80000,  startDate: 'февраль 2026', periodicity: 'единовременно', growth: 0 },
+        { name: 'CRM и IT-системы',          amount: 15000,  startDate: 'апрель 2026',  periodicity: 'ежемесячно',   growth: 5 }
+    ],
+    F: [
+        { position: 'CEO / Руководитель проекта', salary: 150000, count: 1, hireDate: 'январь 2026', growth: 10 },
+        { position: 'Главный агроном',            salary: 120000, count: 1, hireDate: 'январь 2026', growth: 10 },
+        { position: 'Работник фермы',             salary: 70000,  count: 2, hireDate: 'январь 2026', growth: 8  },
+        { position: 'Менеджер по продажам',       salary: 90000,  count: 1, hireDate: 'март 2026',   growth: 10 },
+        { position: 'Курьер',                     salary: 65000,  count: 1, hireDate: 'апрель 2026', growth: 8  },
+        { position: 'Маркетолог / SMM',           salary: 80000,  count: 1, hireDate: 'июнь 2026',   growth: 10 }
+    ],
+    G: { creditPercent: 60, subsidyPercent: 0, equityPercent: 40, creditRate: 12 }
+};
+
 function loadFromStorage() {
     const saved = localStorage.getItem('investmentProject');
-    if (saved) projectData = JSON.parse(saved);
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.A?.name) { projectData = parsed; return; }
+    }
+    projectData = JSON.parse(JSON.stringify(DEMO_DATA));
+    saveToStorage();
 }
 
 function saveToStorage() {
