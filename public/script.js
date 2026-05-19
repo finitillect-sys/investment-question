@@ -1055,7 +1055,7 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
             ['Субсидии (%)',                 projectData.G?.subsidyPercent || ''],
             ['Собственный капитал (%)',      projectData.G?.equityPercent  || ''],
             ['Ставка по кредиту (%)',        projectData.G?.creditRate     || ''],
-            [`Расчётный займ (${thou})`,     result.requiredLoan || 0]
+            [`Расчётный займ (${thou})`,     Number(result.requiredLoan) || 0]
         ],
         [{ wch: 34 }, { wch: 18 }],
         null, [1]
