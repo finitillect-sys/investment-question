@@ -284,6 +284,40 @@ body.dark .theme-btn:hover { color: #a5b4fc; }
     color: var(--text-muted);
     font-style: italic;
 }
+.help-important {
+    margin: 14px 0 18px;
+    padding: 12px 14px;
+    background: #fff8e6;
+    border: 1px solid #f0c95a;
+    border-left: 4px solid #d49b1f;
+    border-radius: 6px;
+    color: #6b4f10;
+}
+.help-important-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 6px;
+    color: #8a6510;
+}
+.help-modal-content .help-important p {
+    margin: 0;
+    font-size: 13.5px;
+    color: #6b4f10;
+    line-height: 1.5;
+}
+body.dark .help-important {
+    background: rgba(212, 155, 31, 0.12);
+    border-color: rgba(240, 201, 90, 0.5);
+    border-left-color: #e0b240;
+    color: #f0d899;
+}
+body.dark .help-important-title,
+body.dark .help-modal-content .help-important p {
+    color: #f0d899;
+}
 .help-modal-close {
     position: absolute;
     top: 14px;
