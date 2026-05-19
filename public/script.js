@@ -902,6 +902,7 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     function sHdr(c) {
         return {
             font:      { bold: true, sz: 10, color: { rgb: '404040' }, name: 'Calibri' },
+            fill:      { fgColor: { rgb: 'EEECE1' }, patternType: 'solid' },
             alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'center' }
         };
     }
