@@ -132,10 +132,10 @@ const DEMO_DATA = {
         { name: 'Электрогрузовик для доставки',              amount: 2500000, date: 'март 2026'    }
     ],
     E: [
-        { product: 'Микрозелень (подсолнух, горох, редис)', price: 450,  quantity: 50, startDate: 'апрель 2026', growth: 20 },
-        { product: 'Пряные травы (базилик, кинза, мята)',   price: 600,  quantity: 30, startDate: 'апрель 2026', growth: 15 },
-        { product: 'Листовые салаты (руккола, шпинат)',     price: 350,  quantity: 80, startDate: 'июнь 2026',   growth: 25 },
-        { product: 'Подписочный набор B2C',                 price: 1800, quantity: 20, startDate: 'июль 2026',   growth: 35 }
+        { product: 'Микрозелень (подсолнух, горох, редис)', price: 1500, quantity: 300, startDate: 'апрель 2026', growth: 20 },
+        { product: 'Пряные травы (базилик, кинза, мята)',   price: 2000, quantity: 200, startDate: 'апрель 2026', growth: 15 },
+        { product: 'Листовые салаты (руккола, шпинат)',     price: 1000, quantity: 400, startDate: 'июнь 2026',   growth: 25 },
+        { product: 'Подписочный набор B2C',                 price: 3000, quantity: 80,  startDate: 'июль 2026',   growth: 35 }
     ],
     C1: [
         { product: 'Микрозелень (подсолнух, горох, редис)', costItem: 'Семена',                  amountPerUnit: 50,  growth: 5 },
@@ -598,7 +598,7 @@ function renderKPI(result) {
         </div>
         <div class="kpi-card">
             <div class="kpi-label">IRR</div>
-            <div class="kpi-value neutral">${result.irr}%</div>
+            <div class="kpi-value neutral">${typeof result.irr === 'number' ? result.irr.toFixed(2) : result.irr}%</div>
             <div class="kpi-sub">внутренняя норма доходности</div>
         </div>
         <div class="kpi-card">
