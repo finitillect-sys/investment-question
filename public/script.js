@@ -895,17 +895,13 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
 
     function sTitle(c) {
         return {
-            font:      { bold: true, sz: 12, color: { rgb: C.WHITE }, name: 'Calibri' },
-            fill:      { fgColor: { rgb: C.PRIMARY }, patternType: 'solid' },
-            border:    brdPrim,
+            font:      { bold: true, sz: 12, color: { rgb: '404040' }, name: 'Calibri' },
             alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'center' }
         };
     }
     function sHdr(c) {
         return {
-            font:      { bold: true, sz: 10, color: { rgb: C.TEXT }, name: 'Calibri' },
-            fill:      { fgColor: { rgb: C.HDR_BG }, patternType: 'solid' },
-            border:    brd,
+            font:      { bold: true, sz: 10, color: { rgb: '404040' }, name: 'Calibri' },
             alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'center' }
         };
     }
