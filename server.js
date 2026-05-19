@@ -247,10 +247,21 @@ app.post('/calculate', (req, res) => {
     ? ((npv + requiredLoan) / requiredLoan).toFixed(2)
     : 'н/д';
 
-  let paybackPeriod = `>${horizon} лет`;
+  const pluralYears = n => {
+    const abs = Math.abs(n) % 100;
+    const n1  = abs % 10;
+    if (abs > 10 && abs < 20) return 'лет';
+    if (n1 === 1)             return 'год';
+    if (n1 >= 2 && n1 <= 4)   return 'года';
+    return 'лет';
+  };
+
+  const genitiveYears = n => (n % 10 === 1 && n % 100 !== 11) ? 'года' : 'лет';
+  let paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
   for (let i = 0; i < years.length; i++) {
     if (cashCumulative[years[i]] >= 0) {
-      paybackPeriod = `${i + 1} лет`;
+      const n = i + 1;
+      paybackPeriod = `${n} ${pluralYears(n)}`;
       break;
     }
   }
