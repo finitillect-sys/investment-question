@@ -1306,6 +1306,17 @@ document.addEventListener('click', e => {
     }
 });
 
+// ── Load demo data ────────────────────────────────────────────────────────────
+
+document.getElementById('loadDemoBtn')?.addEventListener('click', () => {
+    if (confirm('Заполнить все разделы демо-данными проекта «ВертФерм»?\nТекущие данные будут заменены.')) {
+        projectData = JSON.parse(JSON.stringify(DEMO_DATA));
+        saveToStorage();
+        renderSection(currentSection);
+        showToast('Демо-данные загружены');
+    }
+});
+
 // ── Reset ─────────────────────────────────────────────────────────────────────
 
 document.getElementById('resetBtn')?.addEventListener('click', () => {
