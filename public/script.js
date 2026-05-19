@@ -168,6 +168,45 @@ const SECTION_TITLES = {
     G: 'Финансирование'
 };
 
+// ── Planning range validation ──────────────────────────────────────────────────
+
+function getPlanningRange() {
+    const startStr = projectData.A?.startDate;
+    const horizon  = parseInt(projectData.A?.horizon) || 6;
+    if (!startStr) return null;
+    const parts = startStr.trim().toLowerCase().split(/[\.\s]+/);
+    if (parts.length < 2) return null;
+    const m = RUSSIAN_MONTHS_MAP[parts[0]];
+    const y = parseInt(parts[1]);
+    if (m === undefined || isNaN(y)) return null;
+    return {
+        start:   new Date(y, m, 1),
+        end:     new Date(y + horizon - 1, 11, 31),
+        endYear: y + horizon - 1,
+        endLabel: `декабрь ${y + horizon - 1}`
+    };
+}
+
+function validateDateInRange(dateStr) {
+    if (!dateStr) return true;
+    const range = getPlanningRange();
+    if (!range) return true;
+    const parts = dateStr.trim().toLowerCase().split(/[\.\s]+/);
+    if (parts.length < 2) return true;
+    const m = RUSSIAN_MONTHS_MAP[parts[0]];
+    const y = parseInt(parts[1]);
+    if (m === undefined || isNaN(y)) return true;
+    const d = new Date(y, m, 1);
+    if (d < range.start || d > range.end) {
+        showToast(
+            `Дата «${dateStr}» выходит за горизонт планирования (${projectData.A.startDate} — ${range.endLabel})`,
+            'error'
+        );
+        return false;
+    }
+    return true;
+}
+
 function showToast(msg, type = 'success') {
     let toast = document.getElementById('toast');
     if (!toast) {
@@ -428,9 +467,10 @@ function saveSectionA() {
         firstSale:   document.getElementById('a5').value,
         cashStart:   parseMoney(document.getElementById('a6').value) || 0,
         region:      document.getElementById('a7').value,
-        currency:    document.getElementById('a8').value
+        currency:    document.getElementById('a8')?.dataset?.value || projectData.A?.currency || 'RUB'
     };
     saveToStorage();
+    validateDateInRange(projectData.A.firstSale);
     showToast('Раздел A сохранён');
 }
 
@@ -947,10 +987,12 @@ function pickMonth(inputId, year, monthIdx) {
             projectData[ts][parseInt(ti)][fk] = value;
             saveToStorage();
         }
+        validateDateInRange(value);
     } else {
         if (!projectData.A) projectData.A = {};
         projectData.A[fk] = value;
         saveToStorage();
+        if (fk !== 'startDate') validateDateInRange(value);
     }
     closeMonthPicker();
 }
