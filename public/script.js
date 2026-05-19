@@ -970,7 +970,8 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
             ['Остаток ДС на старте',          projectData.A?.cashStart   || 0],
             ['Валюта',                        projectData.A?.currency    || 'RUB']
         ],
-        [{ wch: 32 }, { wch: 36 }]
+        [{ wch: 32 }, { wch: 36 }],
+        null, [1]
     );
 
     // ── B: Средства производства ─────────────────────────────────
@@ -1089,11 +1090,11 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
         'Ключевые показатели эффективности',
         ['Показатель', 'Значение', 'Единица'],
         [
-            ['NPV (чистая приведённая стоимость)',  result.npv,           thou],
+            ['NPV (чистая приведённая стоимость)',  Number(result.npv) || 0, thou],
             ['IRR (внутренняя норма доходности)',   result.irr,           '%'],
             ['PI (индекс рентабельности)',           result.pi,            ''],
             ['Срок окупаемости',                    result.paybackPeriod, ''],
-            ['Потребность в финансировании',         result.requiredLoan,  thou],
+            ['Потребность в финансировании',         Number(result.requiredLoan) || 0, thou],
             ['Ставка дисконтирования',               '16',                '%'],
             ['Страховые взносы',                     '30',                '% от ФОТ']
         ],
