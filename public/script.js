@@ -174,12 +174,12 @@ const DEMO_DATA = {
 
 function loadFromStorage() {
     const saved = localStorage.getItem('investmentProject');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.A?.name) { projectData = parsed; return; }
+    if (saved === null) {
+        projectData = JSON.parse(JSON.stringify(DEMO_DATA));
+        saveToStorage();
+    } else {
+        projectData = JSON.parse(saved);
     }
-    projectData = JSON.parse(JSON.stringify(DEMO_DATA));
-    saveToStorage();
 }
 
 function saveToStorage() {
@@ -1319,7 +1319,8 @@ document.getElementById('loadDemoBtn')?.addEventListener('click', () => {
 
 document.getElementById('resetBtn')?.addEventListener('click', () => {
     if (confirm('Удалить все данные проекта?')) {
-        localStorage.removeItem('investmentProject');
+        const empty = { A: { name:'', description:'', horizon:6, region:'Россия', startDate:'', firstSale:'', cashStart:0, currency:'RUB' }, B:[], E:[], C1:[], C2:[], D:[], F:[], G:{ creditPercent:50, subsidyPercent:0, equityPercent:50, creditRate:9 } };
+        localStorage.setItem('investmentProject', JSON.stringify(empty));
         location.reload();
     }
 });
