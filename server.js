@@ -257,12 +257,18 @@ app.post('/calculate', (req, res) => {
   };
 
   const genitiveYears = n => (n % 10 === 1 && n % 100 !== 11) ? 'года' : 'лет';
-  let paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
-  for (let i = 0; i < years.length; i++) {
-    if (cashCumulative[years[i]] >= 0) {
-      const n = i + 1;
-      paybackPeriod = `${n} ${pluralYears(n)}`;
-      break;
+  const piNum = (typeof pi === 'string' && pi !== 'н/д') ? parseFloat(pi) : (typeof pi === 'number' ? pi : null);
+  let paybackPeriod;
+  if (horizon === 1 || npv < 0 || (piNum !== null && piNum < 1)) {
+    paybackPeriod = 'не рассчитывается';
+  } else {
+    paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
+    for (let i = 0; i < years.length; i++) {
+      if (cashCumulative[years[i]] >= 0) {
+        const n = i + 1;
+        paybackPeriod = `${n} ${pluralYears(n)}`;
+        break;
+      }
     }
   }
 
@@ -285,7 +291,7 @@ app.post('/calculate', (req, res) => {
     cashCumulative:       years.map(y => cashCumulative[y]),
     requiredLoan:         requiredLoan.toFixed(0),
     npv:                  npv.toFixed(0),
-    irr:                  irr !== null ? irr : 'н/д',
+    irr:                  irr !== null ? Number(irr.toFixed(2)) : 'н/д',
     pi,
     paybackPeriod
   });
