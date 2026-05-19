@@ -307,11 +307,13 @@ function renderSection(section) {
             <div class="form-grid">
                 <div class="form-group full">
                     <label>Название проекта</label>
-                    <input id="a1" value="${projectData.A.name || ''}" placeholder="Введите название проекта">
+                    <input id="a1" value="${projectData.A.name || ''}" placeholder="Введите название проекта"
+                        oninput="autoSaveA('name', this.value)">
                 </div>
                 <div class="form-group full">
                     <label>Описание (до 400 символов)</label>
-                    <textarea id="a2" maxlength="400" rows="4" placeholder="Краткое описание проекта" oninput="updateDescCounter()">${projectData.A.description || ''}</textarea>
+                    <textarea id="a2" maxlength="400" rows="4" placeholder="Краткое описание проекта"
+                        oninput="updateDescCounter(); autoSaveA('description', this.value)">${projectData.A.description || ''}</textarea>
                     <div class="desc-counter-row">
                         <div class="desc-counter-bar"><div class="desc-counter-fill" id="descFill"></div></div>
                         <span id="descCount">0 / 400</span>
@@ -319,11 +321,13 @@ function renderSection(section) {
                 </div>
                 <div class="form-group">
                     <label>Горизонт планирования (лет)</label>
-                    <input id="a3" type="number" value="${projectData.A.horizon || 6}" min="1" max="20">
+                    <input id="a3" type="number" value="${projectData.A.horizon || 6}" min="1" max="20"
+                        oninput="autoSaveA('horizon', parseInt(this.value) || 0)">
                 </div>
                 <div class="form-group">
                     <label>Регион реализации</label>
-                    <input id="a7" value="${projectData.A.region || 'Россия'}">
+                    <input id="a7" value="${projectData.A.region || 'Россия'}"
+                        oninput="autoSaveA('region', this.value)">
                 </div>
                 <div class="form-group">
                     <label>Дата начала проекта</label>
@@ -360,11 +364,9 @@ function renderSection(section) {
                     <input id="a6" type="text" inputmode="numeric"
                         value="${fmtMoney(projectData.A.cashStart || 0)}"
                         onfocus="moneyFocus(this)"
+                        oninput="autoSaveA('cashStart', parseMoney(this.value) || 0)"
                         onblur="this.value = fmtMoney(parseMoney(this.value) || 0)">
                 </div>
-            </div>
-            <div class="save-btn-row">
-                <button onclick="saveSectionA()" class="btn-primary">Сохранить</button>
             </div>
         `;
         updateDescCounter();
@@ -377,26 +379,27 @@ function renderSection(section) {
             <div class="form-grid">
                 <div class="form-group">
                     <label>Кредит (%)</label>
-                    <input id="g1" type="number" value="${projectData.G.creditPercent || 50}" min="0" max="100">
+                    <input id="g1" type="number" value="${projectData.G.creditPercent || 50}" min="0" max="100"
+                        oninput="autoSaveG('creditPercent', parseFloat(this.value) || 0)">
                 </div>
                 <div class="form-group">
                     <label>Ставка по кредиту (%)</label>
-                    <input id="g4" type="number" value="${projectData.G.creditRate || 9}" min="0">
+                    <input id="g4" type="number" value="${projectData.G.creditRate || 9}" min="0"
+                        oninput="autoSaveG('creditRate', parseFloat(this.value) || 0)">
                 </div>
                 <div class="form-group">
                     <label>Собственный капитал (%)</label>
-                    <input id="g3" type="number" value="${projectData.G.equityPercent || 50}" min="0" max="100">
+                    <input id="g3" type="number" value="${projectData.G.equityPercent || 50}" min="0" max="100"
+                        oninput="autoSaveG('equityPercent', parseFloat(this.value) || 0)">
                 </div>
                 <div class="form-group">
                     <label>Субсидии (%)</label>
-                    <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100">
+                    <input id="g2" type="number" value="${projectData.G.subsidyPercent || 0}" min="0" max="100"
+                        oninput="autoSaveG('subsidyPercent', parseFloat(this.value) || 0)">
                 </div>
             </div>
             <div id="g-warning" class="section-warning" style="display:none;">
                 ⚠️ Внимание. Общая сумма всех источников финансирования должна составлять 100%
-            </div>
-            <div class="save-btn-row">
-                <button onclick="saveSectionG()" class="btn-primary">Сохранить</button>
             </div>
         `;
         ['g1','g2','g3'].forEach(id => {
@@ -521,20 +524,10 @@ function deleteRow(section, idx) {
     renderSection(section);
 }
 
-function saveSectionA() {
-    projectData.A = {
-        name:        document.getElementById('a1').value,
-        description: document.getElementById('a2').value,
-        horizon:     parseInt(document.getElementById('a3').value),
-        startDate:   document.getElementById('a4').value,
-        firstSale:   document.getElementById('a5').value,
-        cashStart:   parseMoney(document.getElementById('a6').value) || 0,
-        region:      document.getElementById('a7').value,
-        currency:    document.getElementById('a8')?.dataset?.value || projectData.A?.currency || 'RUB'
-    };
+function autoSaveA(field, value) {
+    if (!projectData.A) projectData.A = {};
+    projectData.A[field] = value;
     saveToStorage();
-    validateDateInRange(projectData.A.firstSale);
-    showToast('Раздел A сохранён');
 }
 
 function updateDescCounter() {
@@ -566,15 +559,10 @@ function checkGSum() {
     warning.style.display = Math.abs(sum - 100) > 0.01 ? 'block' : 'none';
 }
 
-function saveSectionG() {
-    projectData.G = {
-        creditPercent:  parseFloat(document.getElementById('g1').value),
-        subsidyPercent: parseFloat(document.getElementById('g2').value),
-        equityPercent:  parseFloat(document.getElementById('g3').value),
-        creditRate:     parseFloat(document.getElementById('g4').value)
-    };
+function autoSaveG(field, value) {
+    if (!projectData.G) projectData.G = {};
+    projectData.G[field] = value;
     saveToStorage();
-    showToast('Раздел G сохранён');
 }
 
 // ── Chart ────────────────────────────────────────────────────────────────────
