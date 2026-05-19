@@ -264,7 +264,7 @@ app.post('/calculate', (req, res) => {
   } else {
     paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
     for (let i = 0; i < years.length; i++) {
-      if (cashCumulative[years[i]] >= 0) {
+      if (preFinCum[years[i]] >= 0) {
         const n = i + 1;
         paybackPeriod = `${n} ${pluralYears(n)}`;
         break;
