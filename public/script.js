@@ -790,7 +790,30 @@ function renderResultsTable(result, transposed) {
 
 // ── Calculate ────────────────────────────────────────────────────────────────
 
+let _horizonWarnResolve = null;
+function showHorizonWarn() {
+    return new Promise(resolve => {
+        _horizonWarnResolve = resolve;
+        document.getElementById('horizonWarnModal').style.display = 'flex';
+    });
+}
+function closeHorizonWarn(proceed) {
+    document.getElementById('horizonWarnModal').style.display = 'none';
+    if (_horizonWarnResolve) { _horizonWarnResolve(proceed); _horizonWarnResolve = null; }
+}
+function goToSectionA() {
+    const btn = document.querySelector('.nav-btn[data-section="A"]');
+    if (btn) btn.click();
+    setTimeout(() => document.getElementById('a3')?.focus(), 100);
+}
+window.closeHorizonWarn = closeHorizonWarn;
+window.goToSectionA = goToSectionA;
+
 document.getElementById('calculateBtn')?.addEventListener('click', async () => {
+    if (parseInt(projectData.A?.horizon) === 1) {
+        const proceed = await showHorizonWarn();
+        if (!proceed) return;
+    }
     const btn = document.getElementById('calculateBtn');
     btn.textContent = '⏳ Расчёт...';
     btn.disabled = true;

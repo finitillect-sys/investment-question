@@ -168,6 +168,28 @@
         </div>
     </div>
 
+    <div id="horizonWarnModal" class="help-modal" style="display:none">
+        <div class="help-modal-backdrop" onclick="closeHorizonWarn(false)"></div>
+        <div class="help-modal-content" style="max-width:520px">
+            <button class="help-modal-close" onclick="closeHorizonWarn(false)" aria-label="Закрыть">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <h2>Уведомление</h2>
+            <div class="help-important">
+                <div class="help-important-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Горизонт планирования — 1 год
+                </div>
+                <p>Выбран горизонт планирования <b>1 год</b>. Вам необходим помесячный прогноз проекта, который не доступен в данной версии инструмента. Выбранный период не позволяет сформировать представление об инвестиционной привлекательности проекта.</p>
+                <p style="margin-top:8px"><b>Рекомендация:</b> увеличить горизонт планирования до 3-х лет.</p>
+            </div>
+            <div class="help-modal-footer" style="display:flex;gap:10px;justify-content:flex-end">
+                <button class="btn-ghost-help" onclick="closeHorizonWarn(true)">Всё равно рассчитать</button>
+                <button class="btn-primary" onclick="closeHorizonWarn(false); goToSectionA()">Изменить горизонт</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/script.js"></script>
 </body>
 </html>
