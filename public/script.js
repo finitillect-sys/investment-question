@@ -804,103 +804,245 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
     const result = window._lastResult;
     const wb = XLSX.utils.book_new();
 
-    function addSheet(name, aoa, colWidths) {
-        const ws = XLSX.utils.aoa_to_sheet(aoa);
-        if (colWidths) ws['!cols'] = colWidths;
-        XLSX.utils.book_append_sheet(wb, ws, name);
+    // ── Palette ──────────────────────────────────────────────────
+    const C = {
+        PRIMARY:    '4F46E5',
+        PRIMARY_LT: 'EEF2FF',
+        HDR_BG:     'F0F2F7',
+        TEXT:       '1A1D27',
+        WHITE:      'FFFFFF',
+        ALT:        'F8F9FB',
+        BRD:        'D1D5DB',
+        COST_BG:    'FFF7ED',
+        GREEN_LT:   'ECFDF5',
+        GREEN_TXT:  '065F46',
+        BLUE_LT:    'EFF6FF',
+        BLUE_TXT:   '1E40AF',
+    };
+
+    function mkBrd(rgb) {
+        const s = { style: 'thin', color: { rgb } };
+        return { top: s, bottom: s, left: s, right: s };
+    }
+    const brd     = mkBrd(C.BRD);
+    const brdPrim = mkBrd(C.PRIMARY);
+
+    function sTitle(c) {
+        return {
+            font:      { bold: true, sz: 12, color: { rgb: C.WHITE }, name: 'Calibri' },
+            fill:      { fgColor: { rgb: C.PRIMARY }, patternType: 'solid' },
+            border:    brdPrim,
+            alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'center' }
+        };
+    }
+    function sHdr(c) {
+        return {
+            font:      { bold: true, sz: 10, color: { rgb: C.TEXT }, name: 'Calibri' },
+            fill:      { fgColor: { rgb: C.HDR_BG }, patternType: 'solid' },
+            border:    brd,
+            alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'center' }
+        };
+    }
+    function sData(c, alt, fillRgb, textRgb, bold) {
+        return {
+            font:      { sz: 10, bold: !!bold, color: { rgb: textRgb || C.TEXT }, name: 'Calibri' },
+            fill:      { fgColor: { rgb: fillRgb || (alt ? C.ALT : C.WHITE) }, patternType: 'solid' },
+            border:    brd,
+            alignment: { vertical: 'center', horizontal: c === 0 ? 'left' : 'right' }
+        };
     }
 
+    // accent map: { [dataRowIdx]: { fillRgb, textRgb, bold } }
+    // numFmtCols: column indices (0-based) to apply #,##0 number format
+    function addSheet(sheetName, titleText, headers, dataRows, colWidths, accentMap, numFmtCols) {
+        const numCols = headers.length;
+        const aoa = [
+            [titleText, ...Array(numCols - 1).fill('')],
+            [...headers],
+            ...dataRows
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        if (colWidths) ws['!cols'] = colWidths;
+        ws['!rows'] = aoa.map((_, i) => ({ hpt: i === 0 ? 24 : i === 1 ? 18 : 16 }));
+
+        for (let r = 0; r < aoa.length; r++) {
+            for (let c = 0; c < numCols; c++) {
+                const addr = XLSX.utils.encode_cell({ r, c });
+                if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+                if (r === 0) {
+                    ws[addr].s = sTitle(c);
+                } else if (r === 1) {
+                    ws[addr].s = sHdr(c);
+                } else {
+                    const di  = r - 2;
+                    const alt = di % 2 !== 0;
+                    const acc = accentMap && accentMap[di];
+                    ws[addr].s = acc
+                        ? sData(c, false, acc.fillRgb, acc.textRgb, acc.bold)
+                        : sData(c, alt);
+                    if (numFmtCols && numFmtCols.includes(c) && ws[addr].t === 'n') {
+                        ws[addr].z = '#,##0';
+                    }
+                }
+            }
+        }
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+
+    const cur  = currencyLabel() || 'руб';
+    const thou = thouLabel();
+
     // ── A: Общие данные ──────────────────────────────────────────
-    addSheet('A. Общие данные', [
+    addSheet(
+        'A. Общие данные',
+        'A. Общие данные о проекте',
         ['Параметр', 'Значение'],
-        ['Название проекта',        projectData.A?.name        || ''],
-        ['Описание',                projectData.A?.description || ''],
-        ['Горизонт планирования',   projectData.A?.horizon     || ''],
-        ['Регион реализации',       projectData.A?.region      || ''],
-        ['Дата начала проекта',     projectData.A?.startDate   || ''],
-        ['Первая продажа',          projectData.A?.firstSale   || ''],
-        ['Остаток ДС на старте',    projectData.A?.cashStart   || 0]
-    ], [{ wch: 28 }, { wch: 30 }]);
+        [
+            ['Название проекта',             projectData.A?.name        || ''],
+            ['Описание',                     projectData.A?.description || ''],
+            ['Горизонт планирования (лет)',   projectData.A?.horizon     || ''],
+            ['Регион реализации',             projectData.A?.region      || ''],
+            ['Дата начала проекта',           projectData.A?.startDate   || ''],
+            ['Первая продажа',                projectData.A?.firstSale   || ''],
+            ['Остаток ДС на старте',          projectData.A?.cashStart   || 0],
+            ['Валюта',                        projectData.A?.currency    || 'RUB']
+        ],
+        [{ wch: 32 }, { wch: 36 }]
+    );
 
     // ── B: Средства производства ─────────────────────────────────
     if (projectData.B?.length) {
-        addSheet('B. Средства производства', [
-            ['Название', 'Сумма (руб)', 'Дата покупки'],
-            ...projectData.B.map(r => [r.name, r.amount, r.date])
-        ], [{ wch: 28 }, { wch: 14 }, { wch: 16 }]);
+        addSheet(
+            'B. Средства производства',
+            'B. Средства производства',
+            ['Название', `Сумма (${cur})`, 'Дата покупки'],
+            projectData.B.map(r => [r.name, r.amount, r.date]),
+            [{ wch: 32 }, { wch: 18 }, { wch: 18 }],
+            null, [1]
+        );
     }
 
     // ── E: Продукты и услуги ─────────────────────────────────────
     if (projectData.E?.length) {
-        addSheet('E. Продукты и услуги', [
-            ['Продукт', 'Цена (руб)', 'Кол-во/мес', 'Дата старта', 'Рост % в год'],
-            ...projectData.E.map(r => [r.product, r.price, r.quantity, r.startDate, r.growth])
-        ], [{ wch: 26 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }]);
+        addSheet(
+            'E. Продукты и услуги',
+            'E. Продукты и услуги',
+            ['Продукт', `Цена (${cur})`, 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
+            projectData.E.map(r => [r.product, r.price, r.quantity, r.startDate, r.growth]),
+            [{ wch: 30 }, { wch: 18 }, { wch: 14 }, { wch: 22 }, { wch: 16 }],
+            null, [1, 2]
+        );
     }
 
     // ── C1: Прямые затраты ───────────────────────────────────────
     if (projectData.C1?.length) {
-        addSheet('C1. Прямые затраты', [
-            ['Продукт', 'Статья затрат', 'Сумма на ед. (руб)', 'Рост %'],
-            ...projectData.C1.map(r => [r.product, r.costItem, r.amountPerUnit, r.growth])
-        ], [{ wch: 26 }, { wch: 22 }, { wch: 20 }, { wch: 10 }]);
+        addSheet(
+            'C1. Прямые затраты',
+            'C1. Прямые затраты на единицу продукции',
+            ['Продукт', 'Статья затрат', `Сумма на ед. (${cur})`, 'Рост %'],
+            projectData.C1.map(r => [r.product, r.costItem, r.amountPerUnit, r.growth]),
+            [{ wch: 30 }, { wch: 28 }, { wch: 22 }, { wch: 12 }],
+            null, [2]
+        );
     }
 
     // ── C2: Косвенные затраты ────────────────────────────────────
     if (projectData.C2?.length) {
-        addSheet('C2. Косвенные затраты', [
-            ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
-            ...projectData.C2.map(r => [r.name, r.amount, r.startDate, r.periodicity, r.growth])
-        ], [{ wch: 26 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 10 }]);
+        addSheet(
+            'C2. Косвенные затраты',
+            'C2. Косвенные производственные затраты',
+            ['Название', `Сумма (${cur})`, 'Дата начала', 'Периодичность', 'Рост %'],
+            projectData.C2.map(r => [r.name, r.amount, r.startDate, r.periodicity, r.growth]),
+            [{ wch: 30 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 12 }],
+            null, [1]
+        );
     }
 
     // ── D: АХР ───────────────────────────────────────────────────
     if (projectData.D?.length) {
-        addSheet('D. АХР', [
-            ['Название', 'Сумма (руб)', 'Дата начала', 'Периодичность', 'Рост %'],
-            ...projectData.D.map(r => [r.name, r.amount, r.startDate, r.periodicity, r.growth])
-        ], [{ wch: 26 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 10 }]);
+        addSheet(
+            'D. АХР',
+            'D. Административно-хозяйственные расходы',
+            ['Название', `Сумма (${cur})`, 'Дата начала', 'Периодичность', 'Рост %'],
+            projectData.D.map(r => [r.name, r.amount, r.startDate, r.periodicity, r.growth]),
+            [{ wch: 30 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 12 }],
+            null, [1]
+        );
     }
 
     // ── F: Персонал ───────────────────────────────────────────────
     if (projectData.F?.length) {
-        addSheet('F. Персонал', [
-            ['Должность', 'Оклад (руб)', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
-            ...projectData.F.map(r => [r.position, r.salary, r.count, r.hireDate, r.growth])
-        ], [{ wch: 26 }, { wch: 14 }, { wch: 10 }, { wch: 16 }, { wch: 12 }]);
+        addSheet(
+            'F. Персонал',
+            'F. Персонал',
+            ['Должность', `Оклад (${cur})`, 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
+            projectData.F.map(r => [r.position, r.salary, r.count, r.hireDate, r.growth]),
+            [{ wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 18 }, { wch: 14 }],
+            null, [1, 2]
+        );
     }
 
     // ── G: Финансирование ─────────────────────────────────────────
-    addSheet('G. Финансирование', [
+    addSheet(
+        'G. Финансирование',
+        'G. Структура финансирования',
         ['Параметр', 'Значение'],
-        ['Кредит (%)',            projectData.G?.creditPercent  || ''],
-        ['Субсидии (%)',          projectData.G?.subsidyPercent || ''],
-        ['Собственный капитал (%)', projectData.G?.equityPercent || ''],
-        ['Ставка по кредиту (%)', projectData.G?.creditRate     || ''],
-        [`Расчётный займ (${thouLabel()})`, result.requiredLoan || 0]
-    ], [{ wch: 30 }, { wch: 16 }]);
+        [
+            ['Кредит (%)',                   projectData.G?.creditPercent  || ''],
+            ['Субсидии (%)',                 projectData.G?.subsidyPercent || ''],
+            ['Собственный капитал (%)',      projectData.G?.equityPercent  || ''],
+            ['Ставка по кредиту (%)',        projectData.G?.creditRate     || ''],
+            [`Расчётный займ (${thou})`,     result.requiredLoan || 0]
+        ],
+        [{ wch: 34 }, { wch: 18 }],
+        null, [1]
+    );
 
-    // ── Прогноз: статьи в строках, годы в столбцах ───────────────
-    const forecastYearCols = result.years.map(y => ({ wch: 16 }));
-    const forecastHeader = ['Статья / Год', ...result.years];
-    const forecastRows = RESULT_ROWS.map(meta => {
-        const vals = (result[meta.key] || []).map(v => Math.round(v));
-        return [meta.label, ...vals];
+    // ── Прогноз ───────────────────────────────────────────────────
+    const forecastAccent = {};
+    RESULT_ROWS.forEach((meta, i) => {
+        if      (meta.class === 'ebitda')    forecastAccent[i] = { fillRgb: C.PRIMARY_LT, textRgb: C.PRIMARY,   bold: true  };
+        else if (meta.class === 'profit')    forecastAccent[i] = { fillRgb: C.GREEN_LT,   textRgb: C.GREEN_TXT, bold: true  };
+        else if (meta.class === 'cash')      forecastAccent[i] = { fillRgb: C.GREEN_LT,   textRgb: C.GREEN_TXT, bold: false };
+        else if (meta.class === 'cost')      forecastAccent[i] = { fillRgb: C.COST_BG,    textRgb: C.TEXT,      bold: false };
+        else if (meta.class === 'financing') forecastAccent[i] = { fillRgb: C.BLUE_LT,    textRgb: C.BLUE_TXT,  bold: false };
     });
-    addSheet(`Прогноз (${thouLabel()})`, [forecastHeader, ...forecastRows],
-        [{ wch: 30 }, ...forecastYearCols]);
+
+    const yearCols       = result.years.map(() => ({ wch: 16 }));
+    const numFmtYearCols = result.years.map((_, i) => i + 1);
+    addSheet(
+        'Прогноз',
+        `Финансовый прогноз (${thou})`,
+        ['Статья / Год', ...result.years.map(String)],
+        RESULT_ROWS.map(meta => [meta.label, ...(result[meta.key] || []).map(v => Math.round(v))]),
+        [{ wch: 34 }, ...yearCols],
+        forecastAccent,
+        numFmtYearCols
+    );
 
     // ── Показатели ────────────────────────────────────────────────
-    addSheet('Показатели', [
+    addSheet(
+        'Показатели',
+        'Ключевые показатели эффективности',
         ['Показатель', 'Значение', 'Единица'],
-        ['NPV',                       result.npv,          thouLabel()],
-        ['IRR',                       result.irr,          '%'],
-        ['PI (индекс рентабельности)', result.pi,          ''],
-        ['Срок окупаемости',           result.paybackPeriod, ''],
-        ['Потребность в финансировании', result.requiredLoan, thouLabel()],
-        ['Ставка дисконтирования',     '16',               '%'],
-        ['Страховые взносы',           '30',               '% от ФОТ']
-    ], [{ wch: 32 }, { wch: 16 }, { wch: 16 }]);
+        [
+            ['NPV (чистая приведённая стоимость)',  result.npv,           thou],
+            ['IRR (внутренняя норма доходности)',   result.irr,           '%'],
+            ['PI (индекс рентабельности)',           result.pi,            ''],
+            ['Срок окупаемости',                    result.paybackPeriod, ''],
+            ['Потребность в финансировании',         result.requiredLoan,  thou],
+            ['Ставка дисконтирования',               '16',                '%'],
+            ['Страховые взносы',                     '30',                '% от ФОТ']
+        ],
+        [{ wch: 42 }, { wch: 18 }, { wch: 18 }],
+        {
+            0: { fillRgb: C.GREEN_LT,   textRgb: C.GREEN_TXT, bold: true  },
+            1: { fillRgb: C.PRIMARY_LT, textRgb: C.PRIMARY,   bold: true  },
+            2: { fillRgb: C.PRIMARY_LT, textRgb: C.PRIMARY,   bold: false },
+            3: { fillRgb: C.PRIMARY_LT, textRgb: C.PRIMARY,   bold: false },
+            4: { fillRgb: C.BLUE_LT,    textRgb: C.BLUE_TXT,  bold: false },
+        }
+    );
 
     const filename = `${projectData.A?.name || 'project'}_results.xlsx`;
     XLSX.writeFile(wb, filename);
