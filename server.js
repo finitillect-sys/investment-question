@@ -96,7 +96,7 @@ app.post('/calculate', (req, res) => {
       qty += aq;
       rev += aq * p.price;
     });
-    revenueByYear[year]  = rev;
+    revenueByYear[year]  = rev / 1000;
     quantityByYear[year] = qty;
   });
 
@@ -117,7 +117,7 @@ app.post('/calculate', (req, res) => {
         .reduce((s, c) => s + (c.amountPerUnit || 0) * Math.pow(1 + (c.growth || 0) / 100, year - sy), 0);
       total += costPerUnit * aq;
     });
-    directCostsByYear[year] = total;
+    directCostsByYear[year] = total / 1000;
   });
 
   // ── Indirect costs ──────────────────────────────────────────────
@@ -137,7 +137,7 @@ app.post('/calculate', (req, res) => {
       else if (c.periodicity === 'ежеквартально') amt *= 4;
       total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
     });
-    indirectCostsByYear[year] = total;
+    indirectCostsByYear[year] = total / 1000;
   });
 
   // ── Admin costs ─────────────────────────────────────────────────
@@ -157,7 +157,7 @@ app.post('/calculate', (req, res) => {
       else if (c.periodicity === 'ежеквартально') amt *= 4;
       total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
     });
-    adminCostsByYear[year] = total;
+    adminCostsByYear[year] = total / 1000;
   });
 
   // ── Payroll + Insurance premiums (30%) ──────────────────────────
@@ -174,8 +174,8 @@ app.post('/calculate', (req, res) => {
         total += person.salary * person.count * 12 * gf;
       }
     });
-    payrollByYear[year]   = total;
-    insuranceByYear[year] = total * 0.30;
+    payrollByYear[year]   = total / 1000;
+    insuranceByYear[year] = (total * 0.30) / 1000;
   });
 
   // ── Investments ─────────────────────────────────────────────────
@@ -187,8 +187,8 @@ app.post('/calculate', (req, res) => {
       const d = parseRussianDate(inv.date);
       if (d && d.getFullYear() === year) total += inv.amount;
     });
-    investmentsByYear[year] = total;
-    totalInvestment        += total;
+    investmentsByYear[year] = total / 1000;
+    totalInvestment        += total / 1000;
   });
 
   // ── Pre-financing P&L ───────────────────────────────────────────
@@ -216,7 +216,7 @@ app.post('/calculate', (req, res) => {
 
   // ── Financing: cover cash-flow gap ─────────────────────────────
   const minCumul       = Math.min(0, ...Object.values(preFinCum));
-  const requiredLoan   = Math.abs(minCumul);                // in base currency
+  const requiredLoan   = Math.abs(minCumul);                // in thousands
   const repayYears     = Math.max(1, years.length - 1);
   const annualPrincipal = requiredLoan / repayYears;        // per year, from yr 2
 
