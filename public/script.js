@@ -197,7 +197,7 @@ function currencyLabel() {
 
 function thouLabel() {
     const cur = currencyLabel();
-    return cur ? `тыс. ${cur}` : 'тыс.';
+    return cur ? cur : '';
 }
 
 function fmtMoney(v) {
