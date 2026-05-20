@@ -278,7 +278,7 @@ app.post('/calculate', (req, res) => {
   const genitiveYears = n => (n % 10 === 1 && n % 100 !== 11) ? 'года' : 'лет';
   const piNum = (typeof pi === 'string' && pi !== 'н/д') ? parseFloat(pi) : (typeof pi === 'number' ? pi : null);
   let paybackPeriod;
-  if (horizon === 1 || npv < 0 || (piNum !== null && piNum < 1)) {
+  if (horizon === 1 || npv < 0 || pi === 'н/д' || (piNum !== null && piNum < 1)) {
     paybackPeriod = 'не рассчитывается';
   } else {
     paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
