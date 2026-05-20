@@ -171,7 +171,12 @@ app.post('/calculate', (req, res) => {
       const hy = hd.getFullYear();
       if (year >= hy && person.count > 0) {
         const gf = Math.pow(1 + (person.growth || 0) / 100, year - hy);
-        total += person.salary * person.count * 12 * gf;
+        let monthsPerYear = 12;
+        if (person.type === 'сезонный') {
+          const m = parseInt(person.monthsPerYear, 10);
+          monthsPerYear = (isNaN(m) || m < 1) ? 12 : Math.min(12, m);
+        }
+        total += person.salary * person.count * monthsPerYear * gf;
       }
     });
     payrollByYear[year]   = total / 1000;

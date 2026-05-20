@@ -104,15 +104,17 @@ const SECTION_CONFIG = {
     },
     F: {
         title: 'Персонал',
-        columns: cur => ['Должность', cur ? `Оклад (${cur})` : 'Оклад', 'Кол-во', 'Дата найма', 'Рост ФОТ %'],
+        columns: cur => ['Должность', cur ? `Оклад (${cur})` : 'Оклад', 'Кол-во', 'Дата найма', 'Рост ФОТ %', 'Тип', 'Кол-во мес. в году'],
         fields: [
-            { key: 'position', type: 'text',   placeholder: 'Токарь' },
-            { key: 'salary',   type: 'money',  placeholder: '80 000' },
-            { key: 'count',    type: 'number', placeholder: '2' },
-            { key: 'hireDate', type: 'month' },
-            { key: 'growth',   type: 'number', placeholder: '7' }
+            { key: 'position',      type: 'text',   placeholder: 'Токарь' },
+            { key: 'salary',        type: 'money',  placeholder: '80 000' },
+            { key: 'count',         type: 'number', placeholder: '2' },
+            { key: 'hireDate',      type: 'month' },
+            { key: 'growth',        type: 'number', placeholder: '7' },
+            { key: 'type',          type: 'select', options: ['постоянный', 'сезонный'] },
+            { key: 'monthsPerYear', type: 'months-per-year' }
         ],
-        emptyRow: () => ({ position: '', salary: '', count: '', hireDate: '', growth: '' })
+        emptyRow: () => ({ position: '', salary: '', count: '', hireDate: '', growth: '', type: 'постоянный', monthsPerYear: 12 })
     }
 };
 
@@ -167,12 +169,12 @@ const DEMO_DATA = {
         { name: 'CRM и IT-системы',          amount: 15000,  startDate: 'апрель 2026',  periodicity: 'ежемесячно',   growth: 5 }
     ],
     F: [
-        { position: 'CEO / Руководитель проекта', salary: 150000, count: 1, hireDate: 'январь 2026', growth: 10 },
-        { position: 'Главный агроном',            salary: 120000, count: 1, hireDate: 'январь 2026', growth: 10 },
-        { position: 'Работник фермы',             salary: 70000,  count: 2, hireDate: 'январь 2026', growth: 8  },
-        { position: 'Менеджер по продажам',       salary: 90000,  count: 1, hireDate: 'март 2026',   growth: 10 },
-        { position: 'Курьер',                     salary: 65000,  count: 1, hireDate: 'апрель 2026', growth: 8  },
-        { position: 'Маркетолог / SMM',           salary: 80000,  count: 1, hireDate: 'июнь 2026',   growth: 10 }
+        { position: 'CEO / Руководитель проекта', salary: 150000, count: 1, hireDate: 'январь 2026', growth: 10, type: 'постоянный', monthsPerYear: 12 },
+        { position: 'Главный агроном',            salary: 120000, count: 1, hireDate: 'январь 2026', growth: 10, type: 'постоянный', monthsPerYear: 12 },
+        { position: 'Работник фермы',             salary: 70000,  count: 2, hireDate: 'январь 2026', growth: 8,  type: 'постоянный', monthsPerYear: 12 },
+        { position: 'Менеджер по продажам',       salary: 90000,  count: 1, hireDate: 'март 2026',   growth: 10, type: 'постоянный', monthsPerYear: 12 },
+        { position: 'Курьер',                     salary: 65000,  count: 1, hireDate: 'апрель 2026', growth: 8,  type: 'сезонный',   monthsPerYear: 8  },
+        { position: 'Маркетолог / SMM',           salary: 80000,  count: 1, hireDate: 'июнь 2026',   growth: 10, type: 'постоянный', monthsPerYear: 12 }
     ],
     G: { creditPercent: 60, subsidyPercent: 0, equityPercent: 40, creditRate: 12 }
 };
@@ -487,6 +489,17 @@ function renderRowHtml(section, row, idx, config) {
             </div></td>`;
         }
 
+        if (field.type === 'months-per-year') {
+            const rowType = row.type || 'постоянный';
+            const isSeasonal = rowType === 'сезонный';
+            const v = isSeasonal ? ((val === '' || val === undefined || val === null) ? 12 : val) : 12;
+            return `<td class="td-months"><input type="number" class="months-input"
+                min="1" max="12" step="1" value="${v}"
+                ${isSeasonal ? '' : 'disabled'}
+                oninput="updateField('${section}',${idx},'${field.key}',this.value)"
+                onblur="clampMonths(this,'${section}',${idx},'${field.key}')"></td>`;
+        }
+
         if (field.type === 'season') {
             const v = (val === '' || val === undefined || val === null) ? 100 : val;
             return `<td class="td-season"><input type="number" class="season-input"
@@ -513,7 +526,7 @@ function updateField(section, idx, key, value) {
     if (!projectData[section][idx]) return;
     const config = SECTION_CONFIG[section];
     const field  = config.fields.find(f => f.key === key);
-    if (field && (field.type === 'number' || field.type === 'money' || field.type === 'season')) {
+    if (field && (field.type === 'number' || field.type === 'money' || field.type === 'season' || field.type === 'months-per-year')) {
         projectData[section][idx][key] = value === '' ? '' : parseFloat(String(value).replace(/[\s\u00A0]/g, '').replace(',', '.'));
     } else if (field && field.type === 'month') {
         projectData[section][idx][key] = monthInputToRussian(value);
@@ -522,6 +535,17 @@ function updateField(section, idx, key, value) {
     }
     saveToStorage();
 }
+
+function clampMonths(input, section, idx, key) {
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) v = 12;
+    if (v < 1)  v = 1;
+    if (v > 12) v = 12;
+    input.value = v;
+    projectData[section][idx][key] = v;
+    saveToStorage();
+}
+window.clampMonths = clampMonths;
 
 function clampSeason(input, section, idx, key) {
     let v = parseFloat(input.value);
@@ -1350,6 +1374,10 @@ function pickSelectOption(selectId, optIdx) {
         onCurrencyChange(value);
     } else if (section && section !== 'A') {
         updateField(section, idx, key, value);
+        // Re-render row when F.type changes so months input enables/disables
+        if (section === 'F' && key === 'type') {
+            renderTableSection('F');
+        }
     } else if (section === 'A') {
         projectData.A[key] = value;
         saveToStorage();
