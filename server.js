@@ -58,6 +58,26 @@ app.post('/calculate', (req, res) => {
   const personnel     = data.F  || [];
   const investments   = data.B  || [];
 
+  // ── Seasonality helpers ─────────────────────────────────────────
+  // Russian seasons: winter = Dec,Jan,Feb | spring = Mar,Apr,May | summer = Jun,Jul,Aug | autumn = Sep,Oct,Nov
+  const seasonKeyForMonth = m => {
+    if (m === 11 || m <= 1) return 'winter';
+    if (m <= 4)             return 'spring';
+    if (m <= 7)             return 'summer';
+    return 'autumn';
+  };
+  const seasonCoef = (product, m) => {
+    const raw = product[seasonKeyForMonth(m)];
+    if (raw === undefined || raw === null || raw === '' || isNaN(raw)) return 1;
+    return Number(raw) / 100;
+  };
+  const productMonthsFactor = (product, year, startMonth) => {
+    // sum of seasonal coefficients across active months in this year
+    let sum = 0;
+    for (let m = startMonth; m < 12; m++) sum += seasonCoef(product, m);
+    return sum;
+  };
+
   // ── Revenue & Quantity ──────────────────────────────────────────
   const revenueByYear  = {};
   const quantityByYear = {};
@@ -70,9 +90,9 @@ app.post('/calculate', (req, res) => {
       const sy = sd.getFullYear();
       if (year < sy) return;
       const gf = Math.pow(1 + (p.growth || 0) / 100, year - sy);
-      const aq = year === sy
-        ? p.quantity * (12 - sd.getMonth()) * gf
-        : p.quantity * 12 * gf;
+      const startMonth = year === sy ? sd.getMonth() : 0;
+      const monthsFactor = productMonthsFactor(p, year, startMonth);
+      const aq = p.quantity * monthsFactor * gf;
       qty += aq;
       rev += aq * p.price;
     });
@@ -90,9 +110,8 @@ app.post('/calculate', (req, res) => {
       const sy = sd.getFullYear();
       if (year < sy) return;
       const gf = Math.pow(1 + (p.growth || 0) / 100, year - sy);
-      const aq = year === sy
-        ? p.quantity * (12 - sd.getMonth()) * gf
-        : p.quantity * 12 * gf;
+      const startMonth = year === sy ? sd.getMonth() : 0;
+      const aq = p.quantity * productMonthsFactor(p, year, startMonth) * gf;
       const costPerUnit = directCosts
         .filter(c => c.product === p.product)
         .reduce((s, c) => s + (c.amountPerUnit || 0) * Math.pow(1 + (c.growth || 0) / 100, year - sy), 0);

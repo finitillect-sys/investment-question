@@ -53,14 +53,19 @@ const SECTION_CONFIG = {
     E: {
         title: 'Продукты и услуги',
         columns: cur => ['Продукт', cur ? `Цена (${cur})` : 'Цена', 'Кол-во/мес', 'Дата старта продаж', 'Рост % в год'],
+        seasonality: true,
         fields: [
             { key: 'product',   type: 'text',   placeholder: 'Электросамокат' },
             { key: 'price',     type: 'money',  placeholder: '25 000' },
             { key: 'quantity',  type: 'number', placeholder: '100' },
             { key: 'startDate', type: 'month' },
-            { key: 'growth',    type: 'number', placeholder: '24' }
+            { key: 'growth',    type: 'number', placeholder: '24' },
+            { key: 'winter',    type: 'season' },
+            { key: 'spring',    type: 'season' },
+            { key: 'summer',    type: 'season' },
+            { key: 'autumn',    type: 'season' }
         ],
-        emptyRow: () => ({ product: '', price: '', quantity: '', startDate: '', growth: '' })
+        emptyRow: () => ({ product: '', price: '', quantity: '', startDate: '', growth: '', winter: 100, spring: 100, summer: 100, autumn: 100 })
     },
     C1: {
         title: 'Прямые затраты на единицу продукции',
@@ -132,10 +137,10 @@ const DEMO_DATA = {
         { name: 'Электрогрузовик для доставки',              amount: 2500000, date: 'март 2026'    }
     ],
     E: [
-        { product: 'Микрозелень (подсолнух, горох, редис)', price: 1500, quantity: 300, startDate: 'апрель 2026', growth: 20 },
-        { product: 'Пряные травы (базилик, кинза, мята)',   price: 2000, quantity: 200, startDate: 'апрель 2026', growth: 15 },
-        { product: 'Листовые салаты (руккола, шпинат)',     price: 1000, quantity: 400, startDate: 'июнь 2026',   growth: 25 },
-        { product: 'Подписочный набор B2C',                 price: 3000, quantity: 80,  startDate: 'июль 2026',   growth: 35 }
+        { product: 'Микрозелень (подсолнух, горох, редис)', price: 1500, quantity: 300, startDate: 'апрель 2026', growth: 20, winter: 110, spring: 100, summer: 90,  autumn: 110 },
+        { product: 'Пряные травы (базилик, кинза, мята)',   price: 2000, quantity: 200, startDate: 'апрель 2026', growth: 15, winter: 90,  spring: 110, summer: 120, autumn: 90  },
+        { product: 'Листовые салаты (руккола, шпинат)',     price: 1000, quantity: 400, startDate: 'июнь 2026',   growth: 25, winter: 80,  spring: 110, summer: 130, autumn: 90  },
+        { product: 'Подписочный набор B2C',                 price: 3000, quantity: 80,  startDate: 'июль 2026',   growth: 35, winter: 100, spring: 100, summer: 100, autumn: 100 }
     ],
     C1: [
         { product: 'Микрозелень (подсолнух, горох, редис)', costItem: 'Семена',                  amountPerUnit: 50,  growth: 5 },
@@ -415,14 +420,24 @@ function renderTableSection(section) {
     const content = document.getElementById('content');
 
     const cols = typeof config.columns === 'function' ? config.columns(currencyLabel()) : config.columns;
-    const headHtml = cols.map(c => `<th>${c}</th>`).join('');
+    let theadHtml;
+    if (config.seasonality) {
+        const mainCols = cols.map(c => `<th rowspan="2">${c}</th>`).join('');
+        theadHtml = `<thead>
+            <tr>${mainCols}<th colspan="4" class="th-group">Сезонность, %</th><th rowspan="2">Удалить</th></tr>
+            <tr><th class="th-sub">Зима</th><th class="th-sub">Весна</th><th class="th-sub">Лето</th><th class="th-sub">Осень</th></tr>
+        </thead>`;
+    } else {
+        const headHtml = cols.map(c => `<th>${c}</th>`).join('');
+        theadHtml = `<thead><tr>${headHtml}<th>Удалить</th></tr></thead>`;
+    }
     const rowsHtml = data.map((row, idx) => renderRowHtml(section, row, idx, config)).join('');
 
     content.innerHTML = `
         <h2 class="section-main-title">Раздел ${section}. ${config.title}</h2>
         <div class="table-wrapper">
             <table class="editable-table">
-                <thead><tr>${headHtml}<th>Удалить</th></tr></thead>
+                ${theadHtml}
                 <tbody id="tbody-${section}">${rowsHtml}</tbody>
             </table>
         </div>
@@ -472,6 +487,14 @@ function renderRowHtml(section, row, idx, config) {
             </div></td>`;
         }
 
+        if (field.type === 'season') {
+            const v = (val === '' || val === undefined || val === null) ? 100 : val;
+            return `<td class="td-season"><input type="number" class="season-input"
+                min="0" max="150" step="10" value="${v}"
+                oninput="updateField('${section}',${idx},'${field.key}',this.value)"
+                onblur="clampSeason(this,'${section}',${idx},'${field.key}')"></td>`;
+        }
+
         if (field.type === 'money') {
             const displayVal = val !== '' ? fmtMoney(val) : '';
             return `<td><input type="text" inputmode="numeric" value="${displayVal}" placeholder="${field.placeholder || ''}"
@@ -490,7 +513,7 @@ function updateField(section, idx, key, value) {
     if (!projectData[section][idx]) return;
     const config = SECTION_CONFIG[section];
     const field  = config.fields.find(f => f.key === key);
-    if (field && (field.type === 'number' || field.type === 'money')) {
+    if (field && (field.type === 'number' || field.type === 'money' || field.type === 'season')) {
         projectData[section][idx][key] = value === '' ? '' : parseFloat(String(value).replace(/[\s\u00A0]/g, '').replace(',', '.'));
     } else if (field && field.type === 'month') {
         projectData[section][idx][key] = monthInputToRussian(value);
@@ -499,6 +522,18 @@ function updateField(section, idx, key, value) {
     }
     saveToStorage();
 }
+
+function clampSeason(input, section, idx, key) {
+    let v = parseFloat(input.value);
+    if (isNaN(v)) v = 100;
+    if (v < 0)   v = 0;
+    if (v > 150) v = 150;
+    v = Math.round(v / 10) * 10;
+    input.value = v;
+    projectData[section][idx][key] = v;
+    saveToStorage();
+}
+window.clampSeason = clampSeason;
 
 function addEmptyRow(section) {
     const config = SECTION_CONFIG[section];
