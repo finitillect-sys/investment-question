@@ -28,18 +28,31 @@ function parseRussianDate(str) {
 }
 
 function calculateIRR(cashFlows) {
-  let rate = 0.1;
-  for (let i = 0; i < 1000; i++) {
-    let npv = 0, dnpv = 0;
-    cashFlows.forEach((cf, t) => {
-      npv  += cf / Math.pow(1 + rate, t);
-      dnpv += -t * cf / Math.pow(1 + rate, t + 1);
-    });
-    if (Math.abs(npv) < 0.001) break;
-    if (dnpv === 0) break;
-    rate = rate - npv / dnpv;
+  // Sanity check: need at least one negative and one positive cash flow
+  const hasNeg = cashFlows.some(cf => cf < 0);
+  const hasPos = cashFlows.some(cf => cf > 0);
+  if (!hasNeg || !hasPos) return null;
+
+  const npvAt = r => cashFlows.reduce((s, cf, t) => s + cf / Math.pow(1 + r, t), 0);
+
+  // Bisection over a bounded sensible range: -99% .. +1000%
+  let lo = -0.99, hi = 10;
+  let fLo = npvAt(lo), fHi = npvAt(hi);
+  if (!isFinite(fLo) || !isFinite(fHi) || fLo * fHi > 0) return null;
+
+  for (let i = 0; i < 200; i++) {
+    const mid = (lo + hi) / 2;
+    const fMid = npvAt(mid);
+    if (!isFinite(fMid)) return null;
+    if (Math.abs(fMid) < 1e-6 || (hi - lo) < 1e-7) {
+      return mid * 100;
+    }
+    if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
+    else                { lo = mid; fLo = fMid; }
   }
-  if (!isFinite(rate) || rate < -1) return null;
+  const rate = (lo + hi) / 2;
+  // Final sanity: refuse absurd results
+  if (!isFinite(rate) || rate < -0.99 || rate > 10) return null;
   return rate * 100;
 }
 
