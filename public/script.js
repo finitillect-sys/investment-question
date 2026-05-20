@@ -642,7 +642,7 @@ function renderKPI(result) {
         </div>
         <div class="kpi-card">
             <div class="kpi-label">IRR</div>
-            <div class="kpi-value neutral">${typeof result.irr === 'number' ? result.irr.toFixed(2) : result.irr}%</div>
+            <div class="kpi-value neutral">${typeof result.irr === 'number' ? result.irr.toFixed(2) + '%' : result.irr}</div>
             <div class="kpi-sub">внутренняя норма доходности</div>
         </div>
         <div class="kpi-card">
@@ -1158,7 +1158,7 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
         ['Показатель', 'Значение', 'Единица'],
         [
             ['NPV (чистая приведённая стоимость)',  Number(result.npv) || 0, thou],
-            ['IRR (внутренняя норма доходности)',   result.irr,           '%'],
+            ['IRR (внутренняя норма доходности)',   typeof result.irr === 'number' ? Number(result.irr.toFixed(2)) : result.irr, typeof result.irr === 'number' ? '%' : ''],
             ['PI (индекс рентабельности)',           result.pi,            ''],
             ['Срок окупаемости',                    result.paybackPeriod, ''],
             ['Потребность в финансировании',         Number(result.requiredLoan) || 0, thou],
