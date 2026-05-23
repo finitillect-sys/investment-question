@@ -12,7 +12,25 @@ let projectData = {
 let currentSection = 'A';
 let tableTransposed = false; // default: items as rows, years as columns
 
-const MONTHS_RU = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+// Single source of truth for month display names — MONTHS_RU and MONTHS_SHORT
+// are derived from this table so adding a new form only requires one edit.
+// RUSSIAN_MONTHS_MAP below mirrors RUSSIAN_MONTHS in server.js — keep in sync.
+const MONTHS = [
+    { full: 'январь',   short: 'Янв' },
+    { full: 'февраль',  short: 'Фев' },
+    { full: 'март',     short: 'Мар' },
+    { full: 'апрель',   short: 'Апр' },
+    { full: 'май',      short: 'Май' },
+    { full: 'июнь',     short: 'Июн' },
+    { full: 'июль',     short: 'Июл' },
+    { full: 'август',   short: 'Авг' },
+    { full: 'сентябрь', short: 'Сен' },
+    { full: 'октябрь',  short: 'Окт' },
+    { full: 'ноябрь',   short: 'Ноя' },
+    { full: 'декабрь',  short: 'Дек' },
+];
+const MONTHS_RU    = MONTHS.map(m => m.full);
+const MONTHS_SHORT = MONTHS.map(m => m.short);
 
 const RUSSIAN_MONTHS_MAP = {
     'январь':0,'января':0,'февраль':1,'февраля':1,'март':2,'марта':2,
@@ -21,14 +39,22 @@ const RUSSIAN_MONTHS_MAP = {
     'октябрь':9,'октября':9,'ноябрь':10,'ноября':10,'декабрь':11,'декабря':11
 };
 
-function russianToMonthInput(str) {
-    if (!str) return '';
+// Shared Russian date parser — avoids duplicating the same logic in every
+// function that needs to convert "май 2026" → { month: 4, year: 2026 }.
+function parseRussianDateParts(str) {
+    if (!str) return null;
     const parts = str.trim().toLowerCase().split(/[\.\s]+/);
-    if (parts.length < 2) return '';
+    if (parts.length < 2) return null;
     const month = RUSSIAN_MONTHS_MAP[parts[0]];
-    const year = parseInt(parts[1]);
-    if (month === undefined || isNaN(year)) return '';
-    return `${year}-${String(month + 1).padStart(2, '0')}`;
+    const year  = parseInt(parts[1]);
+    if (month === undefined || isNaN(year)) return null;
+    return { month, year };
+}
+
+function russianToMonthInput(str) {
+    const p = parseRussianDateParts(str);
+    if (!p) return '';
+    return `${p.year}-${String(p.month + 1).padStart(2, '0')}`;
 }
 
 function monthInputToRussian(val) {
@@ -37,6 +63,22 @@ function monthInputToRussian(val) {
     const idx = parseInt(month) - 1;
     if (isNaN(idx) || !MONTHS_RU[idx]) return '';
     return `${MONTHS_RU[idx]}.${year}`;
+}
+
+// C2 and D share identical column/field structure; only title and placeholders differ.
+function makeCostSectionConfig(title, namePlaceholder, amountPlaceholder, growthPlaceholder) {
+    return {
+        title,
+        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
+        fields: [
+            { key: 'name',        type: 'text',   placeholder: namePlaceholder },
+            { key: 'amount',      type: 'money',  placeholder: amountPlaceholder },
+            { key: 'startDate',   type: 'month' },
+            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
+            { key: 'growth',      type: 'number', placeholder: growthPlaceholder || '10' }
+        ],
+        emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
+    };
 }
 
 const SECTION_CONFIG = {
@@ -78,30 +120,8 @@ const SECTION_CONFIG = {
         ],
         emptyRow: () => ({ product: '', costItem: '', amountPerUnit: '', growth: '' })
     },
-    C2: {
-        title: 'Косвенные производственные затраты',
-        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
-        fields: [
-            { key: 'name',        type: 'text',   placeholder: 'Аренда' },
-            { key: 'amount',      type: 'money',  placeholder: '50 000' },
-            { key: 'startDate',   type: 'month' },
-            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
-            { key: 'growth',      type: 'number', placeholder: '10' }
-        ],
-        emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
-    },
-    D: {
-        title: 'Административно-хозяйственные затраты',
-        columns: cur => ['Название', cur ? `Сумма (${cur})` : 'Сумма', 'Дата начала', 'Периодичность', 'Рост %'],
-        fields: [
-            { key: 'name',        type: 'text',   placeholder: 'Реклама' },
-            { key: 'amount',      type: 'money',  placeholder: '30 000' },
-            { key: 'startDate',   type: 'month' },
-            { key: 'periodicity', type: 'select', options: ['ежемесячно', 'ежеквартально', 'раз в год', 'единовременно'] },
-            { key: 'growth',      type: 'number', placeholder: '5' }
-        ],
-        emptyRow: () => ({ name: '', amount: '', startDate: '', periodicity: 'ежемесячно', growth: '' })
-    },
+    C2: makeCostSectionConfig('Косвенные производственные затраты',   'Аренда',  '50 000', '10'),
+    D:  makeCostSectionConfig('Административно-хозяйственные затраты', 'Реклама', '30 000', '5'),
     F: {
         title: 'Персонал',
         columns: cur => ['Должность', cur ? `Оклад (${cur})` : 'Оклад', 'Кол-во', 'Дата найма', 'Рост ФОТ %', 'Тип', 'Кол-во мес. в году'],
@@ -180,9 +200,14 @@ const DEMO_DATA = {
 };
 
 function loadFromStorage() {
-    const saved = localStorage.getItem('investmentProject');
-    if (saved !== null) {
-        projectData = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('investmentProject');
+        if (saved !== null) {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object') projectData = parsed;
+        }
+    } catch (e) {
+        console.warn('Could not restore saved project data:', e);
     }
 }
 
@@ -244,16 +269,13 @@ function getPlanningRange() {
     const startStr = projectData.A?.startDate;
     const horizon  = parseInt(projectData.A?.horizon) || 6;
     if (!startStr) return null;
-    const parts = startStr.trim().toLowerCase().split(/[\.\s]+/);
-    if (parts.length < 2) return null;
-    const m = RUSSIAN_MONTHS_MAP[parts[0]];
-    const y = parseInt(parts[1]);
-    if (m === undefined || isNaN(y)) return null;
+    const p = parseRussianDateParts(startStr);
+    if (!p) return null;
     return {
-        start:   new Date(y, m, 1),
-        end:     new Date(y + horizon - 1, 11, 31),
-        endYear: y + horizon - 1,
-        endLabel: `декабрь ${y + horizon - 1}`
+        start:    new Date(p.year, p.month, 1),
+        end:      new Date(p.year + horizon - 1, 11, 31),
+        endYear:  p.year + horizon - 1,
+        endLabel: `декабрь ${p.year + horizon - 1}`
     };
 }
 
@@ -261,12 +283,9 @@ function validateDateInRange(dateStr) {
     if (!dateStr) return true;
     const range = getPlanningRange();
     if (!range) return true;
-    const parts = dateStr.trim().toLowerCase().split(/[\.\s]+/);
-    if (parts.length < 2) return true;
-    const m = RUSSIAN_MONTHS_MAP[parts[0]];
-    const y = parseInt(parts[1]);
-    if (m === undefined || isNaN(y)) return true;
-    const d = new Date(y, m, 1);
+    const p = parseRussianDateParts(dateStr);
+    if (!p) return true;
+    const d = new Date(p.year, p.month, 1);
     if (d < range.start || d > range.end) {
         showToast(
             `Дата «${dateStr}» выходит за горизонт планирования (${projectData.A.startDate} — ${range.endLabel})`,
@@ -320,7 +339,7 @@ function renderSection(section) {
                 <div class="form-group full">
                     <label>Описание (до 400 символов)</label>
                     <textarea id="a2" maxlength="400" rows="4" placeholder="Краткое описание проекта"
-                        oninput="updateDescCounter(); autoSaveA('description', this.value)">${projectData.A.description || ''}</textarea>
+                        oninput="updateDescCounter(); autoSaveA('description', this.value)"></textarea>
                     <div class="desc-counter-row">
                         <div class="desc-counter-bar"><div class="desc-counter-fill" id="descFill"></div></div>
                         <span id="descCount">0 / 400</span>
@@ -376,6 +395,10 @@ function renderSection(section) {
                 </div>
             </div>
         `;
+        // Set description via .value (not innerHTML) to prevent layout-breaking
+        // if the text contains </textarea> or similar sequences.
+        const ta = document.getElementById('a2');
+        if (ta) ta.value = projectData.A.description || '';
         updateDescCounter();
     } else if (SECTION_CONFIG[section]) {
         renderTableSection(section);
@@ -567,10 +590,12 @@ function addEmptyRow(section) {
     const tbody = document.getElementById(`tbody-${section}`);
     const idx   = projectData[section].length - 1;
     const row   = projectData[section][idx];
-    const tr    = document.createElement('tr');
-    tr.id       = `row-${section}-${idx}`;
-    tr.innerHTML = renderRowHtml(section, row, idx, config)
-        .replace(/^<tr[^>]*>/, '').replace(/<\/tr>$/, '');
+
+    // Parse the full <tr>...</tr> HTML via a proper table context to avoid
+    // fragile regex stripping of the outer tag.
+    const temp = document.createElement('table');
+    temp.innerHTML = `<tbody>${renderRowHtml(section, row, idx, config)}</tbody>`;
+    const tr = temp.querySelector('tbody tr');
     tbody.appendChild(tr);
 
     const firstInput = tr.querySelector('input, select');
@@ -626,6 +651,20 @@ function autoSaveG(field, value) {
 
 // ── Chart ────────────────────────────────────────────────────────────────────
 
+// Module-level plugin — reads dark mode at draw time so no closure over a
+// stale cardBg value from a previous render call.
+const bgPlugin = {
+    id: 'chartBg',
+    beforeDraw(chart) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return;
+        ctx.save();
+        ctx.fillStyle = document.body.classList.contains('dark') ? '#1c1f2e' : '#ffffff';
+        ctx.fillRect(0, 0, chart.width, chart.height);
+        ctx.restore();
+    }
+};
+
 let mainChartInstance = null;
 
 function fmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
@@ -647,7 +686,7 @@ function renderKPI(result) {
         </div>
         <div class="kpi-card">
             <div class="kpi-label">PI</div>
-            <div class="kpi-value ${parseFloat(result.pi) >= 1 ? 'positive' : 'negative'}">${result.pi}</div>
+            <div class="kpi-value ${result.pi !== null && result.pi >= 1 ? 'positive' : 'negative'}">${result.pi !== null ? result.pi.toFixed(2) : 'н/д'}</div>
             <div class="kpi-sub">индекс рентабельности</div>
         </div>
         <div class="kpi-card">
@@ -672,19 +711,6 @@ function renderChart(result) {
     const isDark    = document.body.classList.contains('dark');
     const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
     const textColor = isDark ? '#8b9ab0' : '#6b7280';
-    const cardBg    = isDark ? '#1c1f2e' : '#ffffff';
-
-    const bgPlugin = {
-        id: 'chartBg',
-        beforeDraw(chart) {
-            const { ctx, chartArea } = chart;
-            if (!chartArea) return;
-            ctx.save();
-            ctx.fillStyle = cardBg;
-            ctx.fillRect(0, 0, chart.width, chart.height);
-            ctx.restore();
-        }
-    };
 
     const ctx = document.getElementById('mainChart').getContext('2d');
     mainChartInstance = new Chart(ctx, {
@@ -1159,7 +1185,7 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
         [
             ['NPV (чистая приведённая стоимость)',  Number(result.npv) || 0, thou],
             ['IRR (внутренняя норма доходности)',   typeof result.irr === 'number' ? Number(result.irr.toFixed(2)) : result.irr, typeof result.irr === 'number' ? '%' : ''],
-            ['PI (индекс рентабельности)',           result.pi,            ''],
+            ['PI (индекс рентабельности)',           result.pi !== null ? result.pi.toFixed(2) : 'н/д', ''],
             ['Срок окупаемости',                    result.paybackPeriod, ''],
             ['Потребность в финансировании',         Number(result.requiredLoan) || 0, thou],
             ['Ставка дисконтирования',               '16',                '%'],
@@ -1197,14 +1223,9 @@ function openMonthPicker(inputId, fieldKey, tableSection, tableIdx) {
     }
     closeMonthPicker();
     const input = document.getElementById(inputId);
-    const parts = (input.value || '').trim().toLowerCase().split(/[\.\s]+/);
+    const p = parseRussianDateParts(input.value || '');
     let selMonth = -1, displayYear = new Date().getFullYear();
-    if (parts.length >= 2) {
-        const mi = RUSSIAN_MONTHS_MAP[parts[0]];
-        const yr = parseInt(parts[1]);
-        if (mi !== undefined) selMonth = mi;
-        if (!isNaN(yr)) displayYear = yr;
-    }
+    if (p) { selMonth = p.month; displayYear = p.year; }
     popup.dataset.year         = displayYear;
     popup.dataset.selMonth     = selMonth;
     popup.dataset.fieldKey     = fieldKey;
@@ -1424,9 +1445,12 @@ document.getElementById('importJsonInput')?.addEventListener('change', e => {
     reader.onload = ev => {
         try {
             const parsed = JSON.parse(ev.target.result);
-            if (!parsed || typeof parsed !== 'object' || !parsed.A || typeof parsed.A !== 'object') {
-                throw new Error('Invalid format');
-            }
+            const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+                    if (!isObj(parsed) || !isObj(parsed.A)) throw new Error('Invalid format');
+                    ['B','C1','C2','D','E','F'].forEach(k => {
+                        if (k in parsed && !Array.isArray(parsed[k])) throw new Error('Invalid format');
+                    });
+                    if ('G' in parsed && !isObj(parsed.G)) throw new Error('Invalid format');
             if (!confirm('Загрузить данные из файла?\nТекущие данные проекта будут заменены.')) return;
             projectData = parsed;
             saveToStorage();

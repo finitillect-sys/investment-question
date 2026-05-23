@@ -8,6 +8,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// ── Constants ──────────────────────────────────────────────────────────────────
+// RUSSIAN_MONTHS mirrors RUSSIAN_MONTHS_MAP in public/script.js — keep in sync.
 const RUSSIAN_MONTHS = {
   'январь': 0, 'января': 0, 'февраль': 1, 'февраля': 1,
   'март': 2, 'марта': 2, 'апрель': 3, 'апреля': 3,
@@ -17,6 +19,7 @@ const RUSSIAN_MONTHS = {
   'ноябрь': 10, 'ноября': 10, 'декабрь': 11, 'декабря': 11
 };
 
+// ── Date helpers ───────────────────────────────────────────────────────────────
 function parseRussianDate(str) {
   if (!str) return null;
   const parts = str.trim().toLowerCase().split(/[\.\s]+/);
@@ -27,74 +30,71 @@ function parseRussianDate(str) {
   return new Date(year, month, 1);
 }
 
+// ── Seasonality helpers ────────────────────────────────────────────────────────
+// Russian seasons: winter=Dec,Jan,Feb | spring=Mar,Apr,May | summer=Jun,Jul,Aug | autumn=Sep,Oct,Nov
+function seasonKeyForMonth(m) {
+  if (m === 11 || m <= 1) return 'winter';
+  if (m <= 4)             return 'spring';
+  if (m <= 7)             return 'summer';
+  return 'autumn';
+}
+
+function seasonCoef(product, m) {
+  const raw = product[seasonKeyForMonth(m)];
+  if (raw === undefined || raw === null || raw === '' || isNaN(raw)) return 1;
+  return Number(raw) / 100;
+}
+
+function productMonthsFactor(product, year, startMonth) {
+  let sum = 0;
+  for (let m = startMonth; m < 12; m++) sum += seasonCoef(product, m);
+  return sum;
+}
+
+// ── Locale helpers ─────────────────────────────────────────────────────────────
+function pluralYears(n) {
+  const abs = Math.abs(n) % 100;
+  const n1  = abs % 10;
+  if (abs > 10 && abs < 20) return 'лет';
+  if (n1 === 1)             return 'год';
+  if (n1 >= 2 && n1 <= 4)   return 'года';
+  return 'лет';
+}
+
+function genitiveYears(n) {
+  return (n % 10 === 1 && n % 100 !== 11) ? 'года' : 'лет';
+}
+
+// ── IRR (bisection, bounded to -99%..+1000%) ───────────────────────────────────
 function calculateIRR(cashFlows) {
-  // Sanity check: need at least one negative and one positive cash flow
   const hasNeg = cashFlows.some(cf => cf < 0);
   const hasPos = cashFlows.some(cf => cf > 0);
   if (!hasNeg || !hasPos) return null;
 
   const npvAt = r => cashFlows.reduce((s, cf, t) => s + cf / Math.pow(1 + r, t), 0);
 
-  // Bisection over a bounded sensible range: -99% .. +1000%
   let lo = -0.99, hi = 10;
   let fLo = npvAt(lo), fHi = npvAt(hi);
   if (!isFinite(fLo) || !isFinite(fHi) || fLo * fHi > 0) return null;
 
   for (let i = 0; i < 200; i++) {
-    const mid = (lo + hi) / 2;
+    const mid  = (lo + hi) / 2;
     const fMid = npvAt(mid);
     if (!isFinite(fMid)) return null;
-    if (Math.abs(fMid) < 1e-6 || (hi - lo) < 1e-7) {
-      return mid * 100;
-    }
+    if (Math.abs(fMid) < 1e-6 || (hi - lo) < 1e-7) return mid * 100;
     if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
     else                { lo = mid; fLo = fMid; }
   }
   const rate = (lo + hi) / 2;
-  // Final sanity: refuse absurd results
   if (!isFinite(rate) || rate < -0.99 || rate > 10) return null;
   return rate * 100;
 }
 
-app.post('/calculate', (req, res) => {
-  const data = req.body;
+// ── Financial computation functions ───────────────────────────────────────────
 
-  const horizon    = data.A?.horizon || 6;
-  const startYear  = 2026;
-  const years      = Array.from({ length: horizon }, (_, i) => startYear + i);
-  const creditRate = (data.G?.creditRate || 9) / 100;
-
-  const products      = data.E  || [];
-  const directCosts   = data.C1 || [];
-  const indirectCosts = data.C2 || [];
-  const adminCosts    = data.D  || [];
-  const personnel     = data.F  || [];
-  const investments   = data.B  || [];
-
-  // ── Seasonality helpers ─────────────────────────────────────────
-  // Russian seasons: winter = Dec,Jan,Feb | spring = Mar,Apr,May | summer = Jun,Jul,Aug | autumn = Sep,Oct,Nov
-  const seasonKeyForMonth = m => {
-    if (m === 11 || m <= 1) return 'winter';
-    if (m <= 4)             return 'spring';
-    if (m <= 7)             return 'summer';
-    return 'autumn';
-  };
-  const seasonCoef = (product, m) => {
-    const raw = product[seasonKeyForMonth(m)];
-    if (raw === undefined || raw === null || raw === '' || isNaN(raw)) return 1;
-    return Number(raw) / 100;
-  };
-  const productMonthsFactor = (product, year, startMonth) => {
-    // sum of seasonal coefficients across active months in this year
-    let sum = 0;
-    for (let m = startMonth; m < 12; m++) sum += seasonCoef(product, m);
-    return sum;
-  };
-
-  // ── Revenue & Quantity ──────────────────────────────────────────
+function computeRevenueAndQuantity(products, years) {
   const revenueByYear  = {};
   const quantityByYear = {};
-
   years.forEach(year => {
     let rev = 0, qty = 0;
     products.forEach(p => {
@@ -102,18 +102,19 @@ app.post('/calculate', (req, res) => {
       if (!sd) return;
       const sy = sd.getFullYear();
       if (year < sy) return;
-      const gf = Math.pow(1 + (p.growth || 0) / 100, year - sy);
+      const gf         = Math.pow(1 + (p.growth || 0) / 100, year - sy);
       const startMonth = year === sy ? sd.getMonth() : 0;
-      const monthsFactor = productMonthsFactor(p, year, startMonth);
-      const aq = p.quantity * monthsFactor * gf;
+      const aq         = p.quantity * productMonthsFactor(p, year, startMonth) * gf;
       qty += aq;
       rev += aq * p.price;
     });
     revenueByYear[year]  = rev / 1000;
     quantityByYear[year] = qty;
   });
+  return { revenueByYear, quantityByYear };
+}
 
-  // ── Direct costs ────────────────────────────────────────────────
+function computeDirectCosts(products, directCosts, years) {
   const directCostsByYear = {};
   years.forEach(year => {
     let total = 0;
@@ -122,9 +123,9 @@ app.post('/calculate', (req, res) => {
       if (!sd) return;
       const sy = sd.getFullYear();
       if (year < sy) return;
-      const gf = Math.pow(1 + (p.growth || 0) / 100, year - sy);
+      const gf         = Math.pow(1 + (p.growth || 0) / 100, year - sy);
       const startMonth = year === sy ? sd.getMonth() : 0;
-      const aq = p.quantity * productMonthsFactor(p, year, startMonth) * gf;
+      const aq         = p.quantity * productMonthsFactor(p, year, startMonth) * gf;
       const costPerUnit = directCosts
         .filter(c => c.product === p.product)
         .reduce((s, c) => s + (c.amountPerUnit || 0) * Math.pow(1 + (c.growth || 0) / 100, year - sy), 0);
@@ -132,12 +133,15 @@ app.post('/calculate', (req, res) => {
     });
     directCostsByYear[year] = total / 1000;
   });
+  return directCostsByYear;
+}
 
-  // ── Indirect costs ──────────────────────────────────────────────
-  const indirectCostsByYear = {};
+// Shared logic for C2 (indirect) and D (admin) — identical periodicity model.
+function computePeriodCosts(items, years, startYear) {
+  const byYear = {};
   years.forEach(year => {
     let total = 0;
-    indirectCosts.forEach(c => {
+    items.forEach(c => {
       const sd  = parseRussianDate(c.startDate);
       const csy = sd ? sd.getFullYear() : startYear;
       if (year < csy) return;
@@ -150,30 +154,12 @@ app.post('/calculate', (req, res) => {
       else if (c.periodicity === 'ежеквартально') amt *= 4;
       total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
     });
-    indirectCostsByYear[year] = total / 1000;
+    byYear[year] = total / 1000;
   });
+  return byYear;
+}
 
-  // ── Admin costs ─────────────────────────────────────────────────
-  const adminCostsByYear = {};
-  years.forEach(year => {
-    let total = 0;
-    adminCosts.forEach(c => {
-      const sd  = parseRussianDate(c.startDate);
-      const csy = sd ? sd.getFullYear() : startYear;
-      if (year < csy) return;
-      if (c.periodicity === 'единовременно') {
-        if (year === csy) total += c.amount;
-        return;
-      }
-      let amt = c.amount;
-      if (c.periodicity === 'ежемесячно')         amt *= 12;
-      else if (c.periodicity === 'ежеквартально') amt *= 4;
-      total += amt * Math.pow(1 + (c.growth || 0) / 100, year - csy);
-    });
-    adminCostsByYear[year] = total / 1000;
-  });
-
-  // ── Payroll + Insurance premiums (30%) ──────────────────────────
+function computePayroll(personnel, years) {
   const payrollByYear   = {};
   const insuranceByYear = {};
   years.forEach(year => {
@@ -195,10 +181,11 @@ app.post('/calculate', (req, res) => {
     payrollByYear[year]   = total / 1000;
     insuranceByYear[year] = (total * 0.30) / 1000;
   });
+  return { payrollByYear, insuranceByYear };
+}
 
-  // ── Investments ─────────────────────────────────────────────────
+function computeInvestments(investments, years) {
   const investmentsByYear = {};
-  let totalInvestment = 0;
   years.forEach(year => {
     let total = 0;
     investments.forEach(inv => {
@@ -206,13 +193,15 @@ app.post('/calculate', (req, res) => {
       if (d && d.getFullYear() === year) total += inv.amount;
     });
     investmentsByYear[year] = total / 1000;
-    totalInvestment        += total / 1000;
   });
+  return investmentsByYear;
+}
 
-  // ── Pre-financing P&L ───────────────────────────────────────────
+function computePnL(revenueByYear, directCostsByYear, indirectCostsByYear,
+                    adminCostsByYear, payrollByYear, insuranceByYear,
+                    investmentsByYear, years) {
   const ebitda    = {};
   const netProfit = {};
-  const preFin    = {};   // pre-financing cash flow
   const preFinCum = {};
   let pfCumul = 0;
 
@@ -227,16 +216,19 @@ app.post('/calculate', (req, res) => {
 
     ebitda[year]    = rev - direct - indirect - admin - payroll - ins;
     netProfit[year] = ebitda[year] * 0.8;
-    preFin[year]    = netProfit[year] - inv;
-    pfCumul        += preFin[year];
+    const preFin    = netProfit[year] - inv;
+    pfCumul        += preFin;
     preFinCum[year] = pfCumul;
   });
 
-  // ── Financing: cover cash-flow gap ─────────────────────────────
-  const minCumul       = Math.min(0, ...Object.values(preFinCum));
-  const requiredLoan   = Math.abs(minCumul);                // in thousands
-  const repayYears     = Math.max(1, years.length - 1);
-  const annualPrincipal = requiredLoan / repayYears;        // per year, from yr 2
+  return { ebitda, netProfit, preFinCum };
+}
+
+function computeFinancing(preFinCum, years, creditRate) {
+  const minCumul        = Math.min(0, ...Object.values(preFinCum));
+  const requiredLoan    = Math.abs(minCumul);
+  const repayYears      = Math.max(1, years.length - 1);
+  const annualPrincipal = requiredLoan / repayYears;
 
   const financingByYear          = {};
   const principalRepaymentByYear = {};
@@ -256,47 +248,44 @@ app.post('/calculate', (req, res) => {
     }
   });
 
-  // ── Final cash flow (with financing) ───────────────────────────
-  const cashFlow     = {};
+  return { requiredLoan, financingByYear, principalRepaymentByYear, interestRepaymentByYear };
+}
+
+function computeFinalCashFlow(netProfit, financingByYear, principalRepaymentByYear,
+                               interestRepaymentByYear, investmentsByYear, years) {
+  const cashFlow       = {};
   const cashCumulative = {};
   let cumul = 0;
+
   years.forEach(year => {
     cashFlow[year] = netProfit[year]
       + financingByYear[year]
       - principalRepaymentByYear[year]
       - interestRepaymentByYear[year]
       - (investmentsByYear[year] || 0);
-    cumul            += cashFlow[year];
+    cumul               += cashFlow[year];
     cashCumulative[year] = cumul;
   });
 
-  // ── Investment indicators ───────────────────────────────────────
+  return { cashFlow, cashCumulative };
+}
+
+function computeIndicators(cashFlow, netProfit, requiredLoan, preFinCum, years, horizon) {
   const discountRate = 0.16;
   let npv = 0;
   const allCF = [-requiredLoan];
+
   years.forEach((year, idx) => {
     npv += cashFlow[year] / Math.pow(1 + discountRate, idx + 1);
     allCF.push(netProfit[year]);
   });
 
   const irr = calculateIRR(allCF);
-  const pi  = requiredLoan > 0
-    ? ((npv + requiredLoan) / requiredLoan).toFixed(2)
-    : 'н/д';
+  // pi returned as number (2 dp) or null — client formats display
+  const pi  = requiredLoan > 0 ? Number(((npv + requiredLoan) / requiredLoan).toFixed(2)) : null;
 
-  const pluralYears = n => {
-    const abs = Math.abs(n) % 100;
-    const n1  = abs % 10;
-    if (abs > 10 && abs < 20) return 'лет';
-    if (n1 === 1)             return 'год';
-    if (n1 >= 2 && n1 <= 4)   return 'года';
-    return 'лет';
-  };
-
-  const genitiveYears = n => (n % 10 === 1 && n % 100 !== 11) ? 'года' : 'лет';
-  const piNum = (typeof pi === 'string' && pi !== 'н/д') ? parseFloat(pi) : (typeof pi === 'number' ? pi : null);
   let paybackPeriod;
-  if (horizon === 1 || npv < 0 || pi === 'н/д' || (piNum !== null && piNum < 1)) {
+  if (horizon === 1 || npv < 0 || pi === null || pi < 1) {
     paybackPeriod = 'н/д';
   } else {
     paybackPeriod = `более ${horizon} ${genitiveYears(horizon)}`;
@@ -309,29 +298,79 @@ app.post('/calculate', (req, res) => {
     }
   }
 
-  res.json({
-    years,
-    revenue:              years.map(y => revenueByYear[y]),
-    quantity:             years.map(y => quantityByYear[y]),
-    directCosts:          years.map(y => directCostsByYear[y]),
-    indirectCosts:        years.map(y => indirectCostsByYear[y]),
-    adminCosts:           years.map(y => adminCostsByYear[y]),
-    payroll:              years.map(y => payrollByYear[y]),
-    insurancePremiums:    years.map(y => insuranceByYear[y]),
-    investments:          years.map(y => investmentsByYear[y]),
-    ebitda:               years.map(y => ebitda[y]),
-    netProfit:            years.map(y => netProfit[y]),
-    financing:            years.map(y => financingByYear[y]),
-    principalRepayment:   years.map(y => principalRepaymentByYear[y]),
-    interestRepayment:    years.map(y => interestRepaymentByYear[y]),
-    cashFlow:             years.map(y => cashFlow[y]),
-    cashCumulative:       years.map(y => cashCumulative[y]),
-    requiredLoan:         requiredLoan.toFixed(0),
-    npv:                  npv.toFixed(0),
-    irr:                  (typeof irr === 'number' && isFinite(irr)) ? Number(irr.toFixed(2)) : 'н/д',
+  return {
+    npv: npv.toFixed(0),
+    irr: (typeof irr === 'number' && isFinite(irr)) ? Number(irr.toFixed(2)) : 'н/д',
     pi,
     paybackPeriod
-  });
+  };
+}
+
+// ── Route ──────────────────────────────────────────────────────────────────────
+app.post('/calculate', (req, res) => {
+  try {
+    const data = req.body;
+
+    const horizon     = data.A?.horizon || 6;
+    const parsedStart = parseRussianDate(data.A?.startDate);
+    const startYear   = parsedStart ? parsedStart.getFullYear() : new Date().getFullYear();
+    const years       = Array.from({ length: horizon }, (_, i) => startYear + i);
+    const creditRate  = (data.G?.creditRate || 9) / 100;
+
+    const products      = data.E  || [];
+    const directCosts   = data.C1 || [];
+    const indirectCosts = data.C2 || [];
+    const adminCosts    = data.D  || [];
+    const personnel     = data.F  || [];
+    const investments   = data.B  || [];
+
+    const { revenueByYear, quantityByYear }    = computeRevenueAndQuantity(products, years);
+    const directCostsByYear                    = computeDirectCosts(products, directCosts, years);
+    const indirectCostsByYear                  = computePeriodCosts(indirectCosts, years, startYear);
+    const adminCostsByYear                     = computePeriodCosts(adminCosts, years, startYear);
+    const { payrollByYear, insuranceByYear }   = computePayroll(personnel, years);
+    const investmentsByYear                    = computeInvestments(investments, years);
+    const { ebitda, netProfit, preFinCum }     = computePnL(
+      revenueByYear, directCostsByYear, indirectCostsByYear,
+      adminCostsByYear, payrollByYear, insuranceByYear, investmentsByYear, years
+    );
+    const { requiredLoan, financingByYear, principalRepaymentByYear, interestRepaymentByYear } =
+      computeFinancing(preFinCum, years, creditRate);
+    const { cashFlow, cashCumulative }         = computeFinalCashFlow(
+      netProfit, financingByYear, principalRepaymentByYear,
+      interestRepaymentByYear, investmentsByYear, years
+    );
+    const { npv, irr, pi, paybackPeriod }      = computeIndicators(
+      cashFlow, netProfit, requiredLoan, preFinCum, years, horizon
+    );
+
+    res.json({
+      years,
+      revenue:              years.map(y => revenueByYear[y]),
+      quantity:             years.map(y => quantityByYear[y]),
+      directCosts:          years.map(y => directCostsByYear[y]),
+      indirectCosts:        years.map(y => indirectCostsByYear[y]),
+      adminCosts:           years.map(y => adminCostsByYear[y]),
+      payroll:              years.map(y => payrollByYear[y]),
+      insurancePremiums:    years.map(y => insuranceByYear[y]),
+      investments:          years.map(y => investmentsByYear[y]),
+      ebitda:               years.map(y => ebitda[y]),
+      netProfit:            years.map(y => netProfit[y]),
+      financing:            years.map(y => financingByYear[y]),
+      principalRepayment:   years.map(y => principalRepaymentByYear[y]),
+      interestRepayment:    years.map(y => interestRepaymentByYear[y]),
+      cashFlow:             years.map(y => cashFlow[y]),
+      cashCumulative:       years.map(y => cashCumulative[y]),
+      requiredLoan:         requiredLoan.toFixed(0),
+      npv,
+      irr,
+      pi,
+      paybackPeriod
+    });
+  } catch (err) {
+    console.error('Calculation error:', err);
+    res.status(500).json({ error: 'Calculation failed' });
+  }
 });
 
-app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
