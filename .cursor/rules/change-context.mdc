@@ -1,0 +1,54 @@
+---
+description: Persist edit history and reasoning in CHANGELOG.md after every substantive change
+alwaysApply: true
+---
+
+# Change Context Tracking
+
+After every substantive code change in this repository, append an entry to
+`CHANGELOG.md` at the project root. This is the project's persistent memory
+of WHY changes were made, not just WHAT changed.
+
+## When to Add an Entry
+
+Add an entry when you:
+
+- Modify business logic in `server.js` (formulas, contracts, endpoints).
+- Change UI behaviour or data flow in `public/script.js` / `public/index.html`.
+- Alter project configuration (`package.json`, `.replit`, scripts).
+- Add or remove files, dependencies, or rules.
+
+Skip the entry only for pure formatting, typo fixes, or trivial doc edits.
+
+## Entry Format
+
+Use the "Keep a Changelog" style with reverse-chronological order. Entries
+are written in English; user-visible product changes may also be mirrored
+into the Russian `README.md` if relevant.
+
+```
+## [Unreleased] - YYYY-MM-DD
+
+### Added
+- Short description of new capability and the reason it was needed.
+
+### Changed
+- File(s) touched + one-line rationale (the "why", not the diff).
+
+### Fixed
+- Bug description, root cause, and fix in one sentence.
+
+### Removed
+- What was removed and why it was safe to remove.
+```
+
+## Workflow
+
+1. Make the code change first.
+2. Read the current top of `CHANGELOG.md`.
+3. Append an entry under today's date in `[Unreleased]`. If today's section
+   already exists, extend it instead of duplicating.
+4. Reference touched files with backticks (e.g. `` `server.js` ``).
+5. Keep each bullet under ~120 characters and focused on intent.
+
+Never delete or rewrite historical entries — only append.

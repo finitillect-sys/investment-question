@@ -1,0 +1,131 @@
+# Cursor Rules — Investment Questionnaire
+
+Project: Node.js/Express investment questionnaire that turns a 7-section
+form (A–G) into a financial model (revenue, costs, EBITDA, net profit,
+required loan, NPV, IRR, PI, payback). Frontend is vanilla HTML/JS/CSS in
+`public/`, backend logic is in `server.js`. Single endpoint: `POST /calculate`.
+
+## Scope Discipline (highest priority)
+
+- **Do only what was asked.** No refactors, renames, "improvements", new
+  features, or unrelated edits unless explicitly requested.
+- **No unilateral decisions.** When anything is ambiguous, inputs are
+  missing, or there is a meaningful trade-off — ASK the user. Do not guess.
+- **No "while I'm here" edits.** If you spot something else, mention it and
+  ask whether to act; do not act first.
+- Full policy lives in `.cursor/rules/scope-discipline.mdc`.
+
+## Agent Roles & Workflow
+
+Every request flows through three roles defined in `.cursor/rules/`:
+
+1. **Lead** (`lead-agent.mdc`) — validates the task, runs a checklist
+   (scope, contract, deps, acceptance criteria), asks clarifying questions
+   if anything is unclear, then dispatches a concrete brief.
+2. **Developer-Tester** (`developer-tester-agent.mdc`) — implements the
+   smallest change that satisfies the brief (Phase 1: Develop), then
+   verifies it against acceptance criteria, contract integrity, numerical
+   sanity, edge cases, language policy, lints, and bookkeeping
+   (Phase 2: Test). Reports PASS/FAIL per criterion back to the Lead.
+3. **Lead (acceptance)** — confirms PASS on all criteria and summarises
+   the result to the user.
+
+Ambiguous tasks never reach the Developer-Tester. Untested changes are
+never reported as complete.
+
+## Language Policy (strict)
+
+- Code, identifiers, comments, commit messages, rule files, CHANGELOG: **English**.
+- User-facing strings (HTML, alerts, chart labels), `README.md`, domain
+  copy: **Russian**. Russian month names and seasonality keys
+  (`winter`/`spring`/`summer`/`autumn`) are part of the API contract — do
+  not translate them.
+
+## Stack & Boundaries
+
+- Node.js 20 + Express 4, CORS enabled, static `public/`.
+- No build step, no bundler, no TypeScript. Do not introduce them without
+  an explicit request.
+- Frontend dependencies (Chart.js, xlsx-js-style) are loaded via CDN — keep
+  it that way.
+- Default port `5000`, configurable via `PORT`. `npm start` -> `node server.js`.
+- Do not change `package.json` `name`, `main`, or `start` without being asked.
+
+## Data Contract (`POST /calculate`)
+
+Sections in the request body:
+
+- `A` general (`horizon`)
+- `B` CapEx investments
+- `C1` direct costs (per product, per unit)
+- `C2` indirect costs (with periodicity)
+- `D`  admin costs (with periodicity)
+- `E`  products/services (price, quantity, growth, seasonality)
+- `F`  personnel (salary, count, growth, type, monthsPerYear)
+- `G`  financing (`creditRate`)
+
+Rules when editing:
+
+- Any change to request/response shape must be applied in **both**
+  `server.js` and `public/script.js` in the same edit.
+- Monetary results are returned in **thousands of roubles** (divided by
+  1000). Never mix units silently.
+- Dates come as Russian strings like `"январь 2026"`. Use the existing
+  `parseRussianDate` / `RUSSIAN_MONTHS` helpers — do not duplicate them.
+- Insurance premiums are 30% of payroll, net profit is 80% of EBITDA,
+  discount rate is 16%. If you change any of these constants, document
+  the reason in `CHANGELOG.md` and reflect user-visible impact in
+  `README.md`.
+
+## Editing Workflow
+
+For every substantive change:
+
+1. Make the code change.
+2. Append an entry to `CHANGELOG.md` under `[Unreleased] - YYYY-MM-DD`,
+   using `Added` / `Changed` / `Fixed` / `Removed`. Focus on **why**,
+   not the diff. Reference touched files in backticks. Never rewrite
+   historical entries — only append.
+3. If the change affects run command, dependencies, project structure,
+   public API of `/calculate`, or user-visible features, update the
+   relevant section of `README.md` (Russian). Keep README ≤ ~250 lines
+   and link to `CHANGELOG.md` for history.
+4. Skip steps 2–3 only for pure formatting, typo fixes, or trivial doc
+   edits.
+
+## Code Style
+
+- JS: `camelCase` identifiers, `const`/`let` (no `var`), early returns,
+  guard clauses for invalid input (mirror existing helpers like
+  `parseRussianDate` returning `null`).
+- Numerical edge cases: validate IRR/NPV inputs, refuse absurd results
+  (existing pattern: `IRR` bounded to `[-99%, +1000%]`).
+- Comments only when intent is non-obvious. No narrating comments
+  (`// increment counter`).
+- Keep functions in `server.js` pure where possible (input -> output);
+  side effects only in the route handler.
+
+## Frontend Conventions (`public/`)
+
+- HTML stays semantic and Russian-labelled.
+- Do not move logic from `script.js` into inline `<script>` blocks.
+- Charts use Chart.js v4 already loaded; xlsx export uses xlsx-js-style.
+  Reuse existing helpers instead of adding new libraries.
+
+## Safety
+
+- Never commit secrets, `.env`, or contents of `zipFile.zip`.
+- Do not run destructive git commands (force push, hard reset, history
+  rewrite) without explicit user approval.
+- Do not auto-create commits unless asked.
+
+## Files of Interest
+
+- `server.js` — Express app + financial model.
+- `public/index.html`, `public/script.js`, `public/style.css` — UI.
+- `.cursor/rules/*.mdc` — granular rules (global conventions, change
+  context, README maintenance, scope discipline, lead agent,
+  developer-tester agent). This `.cursorrules` is the global summary;
+  `.mdc` files contain the same policy split by concern.
+- `CHANGELOG.md` — persistent change context (English).
+- `README.md` — current-state documentation (Russian).

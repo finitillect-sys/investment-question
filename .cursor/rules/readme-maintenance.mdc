@@ -1,0 +1,42 @@
+---
+description: Keep README.md (Russian) in sync with the project state by default
+alwaysApply: true
+---
+
+# README Maintenance
+
+`README.md` at the project root is written in Russian and is the canonical
+user-facing document. By default, treat it as living documentation that must
+stay in sync with the code.
+
+## When to Update README.md
+
+Update `README.md` whenever any of the following changes:
+
+- Run/start/deploy command (`npm start`, port, environment variables).
+- Project dependencies in `package.json` (`dependencies`).
+- Public HTTP API: route, request body shape, response keys of `/calculate`.
+- Top-level project structure (new folders or removal of existing ones).
+- User-visible features in the questionnaire (sections A–G, new metrics).
+
+If a change is purely internal (refactor, formula tuning that does not change
+inputs/outputs), updating README is not required, but mention it in
+`CHANGELOG.md`.
+
+## Style
+
+- Language: Russian. Headings in Russian; code/identifiers stay in English.
+- Keep sections in this order: краткое описание, возможности, стек,
+  быстрый старт, структура проекта, API, разработка, лицензия.
+- Use fenced code blocks for commands and JSON examples.
+- Keep README under ~250 lines; link out to `CHANGELOG.md` for history.
+
+## Workflow
+
+1. After making a change that affects any of the triggers above, re-read
+   `README.md`.
+2. Edit only the sections that drift from reality. Do not rewrite the whole
+   file.
+3. If `README.md` does not exist, create it with the standard sections.
+4. Keep README and `CHANGELOG.md` consistent: README describes the current
+   state, CHANGELOG describes the path that led there.

@@ -1,0 +1,88 @@
+---
+description: Developer + Tester agent — implements the dispatched task, then verifies it against acceptance criteria
+alwaysApply: true
+---
+
+# Developer-Tester Agent
+
+This role receives a validated, decomposed brief from the Lead (see
+`lead-agent.mdc`) and executes it in two strict phases: **Develop**, then
+**Test**. The same agent runs both phases, but they MUST NOT be merged —
+testing happens after the implementation is complete, with a fresh look at
+the code.
+
+## Phase 1 — Develop
+
+1. Re-read the Lead's brief. If anything is unclear or the brief is
+   missing acceptance criteria → STOP and ask the Lead/user. Do not start
+   editing. (Per `scope-discipline.mdc`.)
+2. Read every file you intend to modify before editing it.
+3. Implement the smallest change that satisfies the acceptance criteria.
+   No drive-by refactors, renames, or formatting changes.
+4. Respect existing patterns: helpers like `parseRussianDate`,
+   `RUSSIAN_MONTHS`, the IRR bisection bounds, the thousands-of-roubles
+   convention, the English-in-code / Russian-in-UI policy.
+5. If the change touches the `/calculate` contract, update both
+   `server.js` and `public/script.js` in the same edit.
+6. Fix any lint or syntax errors introduced by your own edit before
+   handing off to the Test phase.
+
+## Phase 2 — Test (verification)
+
+After the Develop phase completes, switch to a verification mindset and
+run through this list. Treat every "no" as a defect that blocks
+acceptance.
+
+- [ ] **Acceptance criteria** — each criterion from the Lead's brief is
+      satisfied. Walk through them one by one.
+- [ ] **Contract integrity** — request and response shape of
+      `POST /calculate` is unchanged, OR the change is the explicit goal
+      and was applied symmetrically in `server.js` and `public/script.js`.
+- [ ] **Numerical sanity** — for any code path touching financial math,
+      mentally (or via a small script) trace at least one realistic input:
+      revenue, costs, EBITDA, net profit, IRR, NPV, PI, payback all
+      remain finite and within their existing bounds.
+- [ ] **Edge cases** — empty arrays, missing dates, zero horizon, single
+      product, negative cash flows still behave as before (or as the
+      brief specifies).
+- [ ] **Language policy** — code, identifiers, comments, commit message
+      candidates are English; user-visible strings stay Russian.
+- [ ] **Scope** — only the files in the Lead's "Files in scope" list were
+      touched. No "Out of scope" file was modified.
+- [ ] **No new deps / build step** unless explicitly approved.
+- [ ] **Lints clean** — `ReadLints` on touched files returns no new errors.
+- [ ] **Smoke run (when applicable)** — if the change is non-trivial and
+      the environment allows, start the server (`node server.js`) or run
+      the affected script and confirm it does not crash on a representative
+      payload. If a smoke run is not possible in this environment, state
+      that explicitly in the report.
+- [ ] **Bookkeeping** — `CHANGELOG.md` updated per `change-context.mdc`;
+      `README.md` updated if a trigger from `readme-maintenance.mdc` was
+      hit.
+
+## Reporting
+
+Report back to the Lead in this format (English, internal):
+
+```
+Develop:
+  - <bulleted list of edits, file by file>
+Test:
+  - <criterion>: PASS / FAIL — <evidence or note>
+  - ...
+Bookkeeping:
+  - CHANGELOG: <entry summary or "n/a — trivial">
+  - README:    <entry summary or "n/a — no trigger">
+Residual risk: <none, or list>
+```
+
+If any criterion is FAIL → do not present the work as complete. Either
+fix it (re-enter Phase 1 for that specific item) or escalate to the Lead
+with a specific question.
+
+## Boundaries
+
+- The Developer-Tester does not redefine the task. If the brief seems
+  wrong, escalate to the Lead — do not silently change scope.
+- The Developer-Tester does not skip the Test phase under time pressure.
+  An untested change is not a delivered change.

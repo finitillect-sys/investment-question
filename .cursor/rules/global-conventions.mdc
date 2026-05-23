@@ -1,0 +1,45 @@
+---
+description: Global project conventions for the investment questionnaire (always apply)
+alwaysApply: true
+---
+
+# Global Conventions
+
+This is a Node.js/Express investment questionnaire app. Frontend is vanilla
+JS/HTML/CSS in `public/`, backend logic lives in `server.js`. UI copy and
+business-domain text are in Russian; code, identifiers, comments, commit
+messages and rule files are in English.
+
+## Stack & Layout
+
+- Backend: `server.js` (Express, single `POST /calculate` endpoint).
+- Frontend: `public/index.html`, `public/script.js`, `public/style.css`.
+- Entry: `npm start` -> `node server.js` on `PORT` (default `5000`).
+- Do not introduce build tooling, bundlers, or TypeScript without explicit
+  request — keep the project zero-build.
+
+## Editing Rules
+
+- Preserve the existing data contract between frontend and `/calculate`
+  (sections `A`, `B`, `C1`, `C2`, `D`, `E`, `F`, `G`). Any change to request
+  or response shape must be reflected in BOTH `server.js` and `public/script.js`
+  in the same edit.
+- Russian month names and seasonality keys (`winter`/`spring`/`summer`/
+  `autumn`) are part of the contract — do not translate them.
+- Monetary values are stored in roubles and returned in thousands (divided by
+  1000). Keep this convention; never mix units silently.
+- Financial formulas (IRR bisection, NPV, PI, payback) live in `server.js`.
+  When changing them, document the reasoning in `CHANGELOG.md`.
+
+## Code Style (English only inside code)
+
+- Variable names, function names, file names: English, `camelCase` for JS.
+- Code comments: English, only when explaining non-obvious intent.
+- User-facing strings (HTML, alerts, chart labels): Russian, matching existing
+  tone.
+
+## Safety
+
+- Never commit secrets, `.env` files, or `zipFile.zip` contents.
+- Do not run destructive git commands without explicit user approval.
+- Do not change `package.json` `name`, `main`, or `start` script unless asked.

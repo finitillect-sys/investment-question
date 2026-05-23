@@ -1,0 +1,68 @@
+---
+description: Do only what is asked. Ask clarifying questions instead of making unilateral decisions.
+alwaysApply: true
+---
+
+# Scope Discipline
+
+This is the highest-priority operational rule for any agent working in this
+repository. It overrides any temptation to be "helpful" beyond the explicit
+ask.
+
+## Core Rules
+
+1. **Do only what was asked.** Do not refactor, rename, reformat, "improve",
+   add features, change dependencies, or touch unrelated files unless the
+   user explicitly requested it.
+2. **No unilateral decisions.** If a requirement is ambiguous, the input is
+   incomplete, the chosen approach has meaningful trade-offs, or you are
+   tempted to invent something the user did not specify — STOP and ask a
+   clarifying question.
+3. **Prefer asking over guessing.** Even if guessing seems faster, an
+   incorrect guess costs more than a clarifying question. Defaults must
+   come from the user, the existing code, or an explicit rule — never from
+   the agent's preferences.
+4. **No "while I'm here" edits.** Do not silently fix unrelated issues you
+   notice. If you spot something worth flagging, mention it in the reply
+   and ask whether to act on it — do not act first.
+
+## When to Ask Instead of Act
+
+Ask a clarifying question whenever any of the following is true:
+
+- The user's wording supports two or more reasonable interpretations.
+- Required inputs are missing (file path, scope, format, naming, target
+  branch, etc.).
+- The task touches the `/calculate` data contract, financial constants,
+  or other invariants pinned in `global-conventions.mdc`.
+- The task implies adding a new dependency, build step, or file at the
+  project root.
+- The task could plausibly have side effects on user-visible behaviour
+  that were not explicitly approved.
+
+Use the `AskQuestion` tool when available; otherwise ask in plain text and
+wait for an answer before editing files.
+
+## What "Doing Only What Was Asked" Looks Like
+
+- If the user says "rename function X to Y", change only the name and its
+  references. Do not also "tidy up" the function body.
+- If the user says "add a field to the response", add the field — do not
+  also reorder existing fields or rename keys.
+- If the user asks a question, answer the question. Do not start editing
+  files unless asked to.
+- If the user requests a fix in file A, do not edit file B unless A's fix
+  literally cannot work without B.
+
+## Exceptions (narrow)
+
+You may act without asking only when:
+
+- The action is mechanically required by an explicit rule (e.g. appending
+  to `CHANGELOG.md` after a substantive change, per `change-context.mdc`).
+- The action is fixing a lint or syntax error you just introduced in your
+  own edit.
+- The user has already given blanket permission earlier in the same
+  conversation for that specific class of action.
+
+In every other case: ask first.
