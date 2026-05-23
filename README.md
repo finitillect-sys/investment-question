@@ -25,6 +25,8 @@ EBITDA, чистой прибыли, потребности в кредитов�
   `POST /calculate`.
 - **Frontend:** ванильный HTML/CSS/JS в `public/`, Chart.js и
   xlsx-js-style через CDN.
+- **Сборка frontend:** `terser` + `javascript-obfuscator` (JS),
+  `clean-css` (CSS), `html-minifier-terser` (HTML).
 - **Запуск/деплой:** `npm start` локально, конфигурация Replit в `.replit`.
 
 ## Быстрый старт
@@ -37,12 +39,21 @@ npm start
 Сервер слушает порт `5000` (переопределяется через переменную окружения
 `PORT`). Откройте `http://localhost:5000` в браузере.
 
+Сборка фронтенда в папку `build`:
+
+```bash
+npm run build
+```
+
 ## Структура проекта
 
 ```
 .
 ├── server.js                              # Express-сервер и финансовая модель
 ├── package.json                           # зависимости и скрипт запуска
+├── scripts/
+│   └── build.js                           # сборка: minify/obfuscate из public -> build
+├── build/                                 # артефакты сборки (создаётся командой npm run build)
 ├── public/
 │   ├── index.html                         # разметка опросного листа
 │   ├── script.js                          # клиентская логика, графики, экспорт в xlsx
@@ -55,7 +66,10 @@ npm start
 │   ├── lead-agent.mdc
 │   ├── developer-tester-agent.mdc
 │   ├── change-context.mdc
-│   └── readme-maintenance.mdc
+│   ├── readme-maintenance.mdc
+│   └── visual-validation.mdc
+├── .cursor/context/
+│   └── visual-regulator.md                # визуальный регулятор для UI-валидации
 ├── .gitignore                             # игнор-паттерны (Node, Python, IDE, проектные)
 ├── CHANGELOG.md                           # история изменений (английский)
 └── README.md                              # этот файл (русский)
@@ -217,6 +231,8 @@ GitLab Runner подключается к серверу по SSH, достав�
 | `.cursor/rules/developer-tester-agent.mdc` | Роль Developer-Tester: фаза Develop (минимальная реализация), фаза Test (верификация по чек-листу), формат отчёта Lead'у. |
 | `.cursor/rules/change-context.mdc` | Когда и как дописывать в `CHANGELOG.md`; формат записей; запрет переписывать историю. |
 | `.cursor/rules/readme-maintenance.mdc` | Триггеры обновления `README.md`, порядок секций, ограничение размера, синхронизация с `CHANGELOG.md`. |
+| `.cursor/rules/visual-validation.mdc` | Обязательная валидация каждой новой визуальной фичи: консистентность компонентов, токены, light/dark parity, interaction states, отсутствие регрессий. |
+| `.cursor/context/visual-regulator.md` | Контекстный файл-регулятор с текущими визуальными требованиями и QA-чек-листом для UI-изменений. |
 
 ## История изменений
 

@@ -1,0 +1,45 @@
+---
+description: Mandatory validation flow for every new visual feature in the frontend
+alwaysApply: true
+---
+
+# Visual Validation Workflow
+
+This rule applies whenever a task adds or changes user-facing UI behavior in
+`public/index.html`, `public/style.css`, or visual rendering parts of
+`public/script.js`.
+
+## Source of Truth
+
+- Use `.cursor/context/visual-regulator.md` as the baseline design contract.
+- Do not invent a new visual language unless the user explicitly asks for a redesign.
+- Keep existing style direction (compact dashboard, card-based layout, dual theme).
+
+## Required Validation for Every Visual Feature
+
+Before considering a visual task complete, validate all points:
+
+1. **Component consistency**
+   - Buttons use existing families (`btn-primary`, `btn-secondary`, ghost variants).
+   - Cards, inputs, tables, and modal surfaces follow current radius/border/shadow patterns.
+2. **Token usage**
+   - Colors come from CSS variables (`--primary`, `--bg`, `--card`, `--text`, etc.).
+   - No hardcoded colors where semantic tokens already exist.
+3. **Theme parity**
+   - Feature is readable and functional in both light and dark themes.
+   - Dark mode overrides are added only where needed, mirroring existing patterns.
+4. **Layout and responsiveness**
+   - Desktop layout integrity is preserved (sidebar + topbar + content cards).
+   - No overflow/clipping regressions in tables, popups, and modals.
+5. **Interaction quality**
+   - Hover/focus/active states are present and match existing motion timing.
+   - Keyboard focus remains visible for interactive controls.
+6. **Language policy**
+   - User-facing UI text remains Russian.
+   - Code identifiers and comments remain English.
+
+## Delivery Protocol
+
+- If any validation point fails, fix it before final response.
+- In the final report, explicitly mention visual validation was completed.
+- If the request conflicts with the regulator baseline, ask the user before changing direction.

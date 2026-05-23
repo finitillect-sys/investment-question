@@ -1208,7 +1208,6 @@ document.getElementById('exportCSVBtn')?.addEventListener('click', () => {
 
 // ── Month Picker ───────────────────────────────────────────────────────────────
 
-const MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 let _activePickerId = null;
 
 // inputId      — id of the <input> element

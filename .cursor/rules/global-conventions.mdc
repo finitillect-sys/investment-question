@@ -30,6 +30,9 @@ messages and rule files are in English.
   1000). Keep this convention; never mix units silently.
 - Financial formulas (IRR bisection, NPV, PI, payback) live in `server.js`.
   When changing them, document the reasoning in `CHANGELOG.md`.
+- Any new UI feature in `public/` must pass the visual validation workflow in
+  `.cursor/rules/visual-validation.mdc` using
+  `.cursor/context/visual-regulator.md` as baseline.
 
 ## Code Style (English only inside code)
 

@@ -8,6 +8,8 @@
     --primary-hover: #4338ca;
     --primary-light: #eef2ff;
     --primary-rgb: 79, 70, 229;
+    --accent: #4f46e5;
+    --accent-light: #eef2ff;
     --danger: #ef4444;
     --danger-light: #fef2f2;
     --success: #10b981;
@@ -28,6 +30,8 @@ body.dark {
     --primary-hover: #818cf8;
     --primary-light: #1a1f3a;
     --primary-rgb: 99, 102, 241;
+    --accent: #a5b4fc;
+    --accent-light: #1a1f3a;
     --danger: #f87171;
     --danger-light: #2d1a1a;
     --success: #34d399;

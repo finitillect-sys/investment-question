@@ -102,3 +102,34 @@ state, this file reflects the path that led there.
 ### Changed
 - `README.md`: added Russian CI/CD deployment instructions for required
   GitLab variables and the SSH/PM2 deploy flow.
+
+### Fixed
+- `public/script.js`: removed duplicate `MONTHS_SHORT` declaration in month
+  picker block to prevent browser `SyntaxError` on script load.
+
+### Added
+- `.cursor/rules/visual-validation.mdc` as an always-apply workflow to require
+  visual QA for each new frontend feature before delivery.
+- `.cursor/context/visual-regulator.md` as the baseline design contract
+  (tokens, layout, components, interaction, and visual QA checklist).
+
+### Changed
+- `.cursorrules` and `.cursor/rules/global-conventions.mdc`: global policy now
+  mandates visual validation for UI changes using the regulator baseline.
+- `README.md`: project structure and rules table now include visual validation
+  rule and the dedicated visual regulator context file.
+
+### Fixed
+- `public/style.css`: added missing `--accent` and `--accent-light` tokens for
+  light/dark themes so sidebar ghost-button hover states render consistently.
+- `public/index.html`: updated help-text privacy wording to match actual
+  behavior where data is sent to `/calculate` only for server-side calculation.
+
+### Added
+- `scripts/build.js`: frontend build pipeline that reads `public/`, minifies
+  HTML/CSS, minifies + obfuscates JS, and writes artifacts to `build/`.
+- `package.json` build script: `npm run build`.
+
+### Changed
+- `README.md`: documented new frontend build command, toolchain, and generated
+  `build/` output directory.

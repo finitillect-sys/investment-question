@@ -112,6 +112,20 @@ For every substantive change:
 - Charts use Chart.js v4 already loaded; xlsx export uses xlsx-js-style.
   Reuse existing helpers instead of adding new libraries.
 
+## Visual Feature Governance
+
+- Every new visual feature must pass validation against
+  `.cursor/context/visual-regulator.md`.
+- Mandatory execution rule:
+  `.cursor/rules/visual-validation.mdc` (always apply).
+- For UI changes in `public/index.html`, `public/style.css`, and visual parts
+  of `public/script.js`, confirm:
+  - component consistency with existing button/card/input/table/modal patterns;
+  - token usage through CSS variables (avoid unnecessary hardcoded colors);
+  - parity in light and dark theme;
+  - no layout regressions (overflow/clipping/sidebar-topbar structure);
+  - visible hover/focus states and Russian user-facing copy.
+
 ## Safety
 
 - Never commit secrets, `.env`, or contents of `zipFile.zip`.
