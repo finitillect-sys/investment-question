@@ -45,6 +45,73 @@ npm start
 npm run build
 ```
 
+### Запуск на сервере (Node.js + PM2)
+
+Ниже пример для Ubuntu 22.04+.
+
+1) Установите Node.js 20 (через NodeSource):
+
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v
+npm -v
+```
+
+2) Склонируйте проект и установите зависимости:
+
+```bash
+git clone <URL_ВАШЕГО_РЕПОЗИТОРИЯ> investment-question
+cd investment-question
+npm ci
+```
+
+3) Проверьте ручной запуск серверного файла:
+
+```bash
+npm start
+```
+
+По умолчанию сервер слушает `5000` порт (или значение переменной `PORT`).
+
+4) Установите PM2 глобально:
+
+```bash
+sudo npm install -g pm2
+pm2 -v
+```
+
+5) Запустите приложение через PM2:
+
+```bash
+pm2 start npm --name investment-question -- start
+pm2 status
+```
+
+6) Включите автозапуск PM2 после перезагрузки сервера:
+
+```bash
+pm2 startup
+```
+
+PM2 выведет команду вида `sudo env PATH=... pm2 startup ...` — выполните её.
+Затем сохраните текущий список процессов:
+
+```bash
+pm2 save
+```
+
+Полезные команды PM2:
+
+```bash
+pm2 logs investment-question
+pm2 restart investment-question
+pm2 stop investment-question
+pm2 delete investment-question
+```
+
 ## Структура проекта
 
 ```

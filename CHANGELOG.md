@@ -133,3 +133,5 @@ state, this file reflects the path that led there.
 ### Changed
 - `README.md`: documented new frontend build command, toolchain, and generated
   `build/` output directory.
+- `README.md`: added step-by-step server run guide (Ubuntu) covering Node.js 20
+  installation, dependency install, PM2 process start, and PM2 autostart setup.
