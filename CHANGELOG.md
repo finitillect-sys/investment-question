@@ -94,3 +94,11 @@ state, this file reflects the path that led there.
   workflow, a short summary of the global rules (scope discipline,
   language policy, `/calculate` contract, changelog, README, safety),
   and a per-file table of `.cursorrules` + `.cursor/rules/*.mdc`.
+
+### Added
+- `.gitlab-ci.yml` deploy pipeline for GitLab Runner: on push to `master`,
+  ship project via SSH + rsync, install prod deps and restart app with PM2.
+
+### Changed
+- `README.md`: added Russian CI/CD deployment instructions for required
+  GitLab variables and the SSH/PM2 deploy flow.
